@@ -3428,6 +3428,7 @@ int handle_input(Player *player) {
     }
     night=0;
     int t = telesm(player);
+    attroff(COLOR_PAIR(6));
     if(t==1&&!is_music_playing()){
         play_music("peritune-spook4(chosic.com).mp3");
     }
