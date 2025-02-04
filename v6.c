@@ -80,23 +80,20 @@ char map2[MAP_HEIGHT][MAP_WIDTH];
 char map3[MAP_HEIGHT][MAP_WIDTH];
 char map4[MAP_HEIGHT][MAP_WIDTH];
 char battle_room[MAP_HEIGHT][MAP_WIDTH];
+char war_house[MAP_HEIGHT][MAP_WIDTH];
 
 int memory_map1[MAP_HEIGHT][MAP_WIDTH];
 int memory_map2[MAP_HEIGHT][MAP_WIDTH];  
 int memory_map3[MAP_HEIGHT][MAP_WIDTH];  
 int memory_map4[MAP_HEIGHT][MAP_WIDTH];
 
-Enemy enemy_map1[6];
-Enemy enemy_map2[6];
-Enemy enemy_map3[5];
-Enemy enemy_map4[6];
-
 Enemy enemies_map1[10];
 Enemy enemies_map2[10];
 Enemy enemies_map3[10];
 Enemy enemies_map4[10];
-
+Enemy enemies_war[12];
 Enemy enemies[12];
+int inwar=0;
 int fmsign=0;
 int gmsign1=0;
 int gmsign2=0;
@@ -178,10 +175,6 @@ int gold_manager(char gold);
 int spell_manager(char spell);
 int spell_table();
 char message(int height, int width);
-void placing_enemy_map1();
-void placing_enemy_map2();
-void placing_enemy_map3();
-void placing_enemy_map4();
 int is_valid_enemy(int y , int x,char map[MAP_HEIGHT][MAP_WIDTH]);
 void clear_enemy(Enemy enemy);
 void damage_player(Enemy *enemy,Player *player);
@@ -191,7 +184,7 @@ int damage_enemy(int level,int room,char weapon,Player *player);
 void create_battle_room();
 Enemy create_random_enemy(int y, int x);
 void clear_player2(Player *player);
-void move_player(Player *player);
+int move_player(Player *player);
 int enemy_checker(Player *player, Enemy *enemy);
 int is_valid_move2(int x, int y);
 int start_battle();
@@ -216,6 +209,10 @@ bool init_sdl();
 void play_music(const char* file_path);
 void stop_music();
 bool is_music_playing();
+int create_war_house();
+void draw_war_house();
+void start_war();
+void refresh3(Player *player);
 
 int main(){
     setlocale(LC_ALL, "en_US.UTF-8");   
@@ -1336,7 +1333,7 @@ void clear_player(Player *player) {
        mvprintw(player->y, player->x, "%c", '.');
        fmsign++;
     }
-    else if (p_user.level_num==1)
+    else if (p_user.level_num==1&&inwar==0)
     {
         if(player->prev_char=='^'){
             map1[player->y][player->x]='?';
@@ -1351,7 +1348,7 @@ void clear_player(Player *player) {
             mvprintw(player->y, player->x, "%c", player->prev_char);
         }
     }
-    else if (p_user.level_num==2)
+    else if (p_user.level_num==2&&inwar==0)
     {
         if(player->prev_char=='^'){
             map2[player->y][player->x]='?';
@@ -1366,7 +1363,7 @@ void clear_player(Player *player) {
             mvprintw(player->y, player->x, "%c", player->prev_char);
         }
     }
-    else if (p_user.level_num==3)
+    else if (p_user.level_num==3&&inwar==0)
     {
         if(player->prev_char=='^'){
             map3[player->y][player->x]='?';
@@ -1381,7 +1378,7 @@ void clear_player(Player *player) {
             mvprintw(player->y, player->x, "%c", player->prev_char);
         }
     }
-    else if (p_user.level_num==4)
+    else if (p_user.level_num==4&&inwar==0)
     {
         if(player->prev_char=='^'){
             map4[player->y][player->x]='?';
@@ -1395,6 +1392,9 @@ void clear_player(Player *player) {
         else{
             mvprintw(player->y, player->x, "%c", player->prev_char);
         }
+    }
+    else if(inwar==1){
+        war_house[player->y][player->x]='.';
     }
 }
 void draw_path(int x1, int y1, int x2, int y2,char map[MAP_HEIGHT][MAP_WIDTH]) {
@@ -3624,7 +3624,8 @@ int handle_input(Player *player) {
                 map1[new_y][new_x]='.';
             }
             else if(map1[new_y][new_x]=='^'){
-                p_user.health-=10;
+                start_war();
+                clear();
             }
             else if(map1[new_y][new_x]=='H'||map1[new_y][new_x]=='R'||map1[new_y][new_x]=='8'&&night==0){
                 if(message(5,40)=='\n'){
@@ -5685,7 +5686,7 @@ void clear_player2(Player *player) {
             battle_room[player->y][player->x]='.';
         } 
     }
-void move_player(Player *player) {
+int move_player(Player *player) {
         if(p_user.weapon_bar.arrow<=0 && p_user.weapon_bar.dagger<=0 && p_user.weapon_bar.sword<=0 && p_user.weapon_bar.magic_wand<=0){
             p_user.current_weapon='m';
         }
@@ -5693,165 +5694,319 @@ void move_player(Player *player) {
             p_user.hunger=100;
             p_user.health=10000;
         }
-        int ch = getch();
-        int x=0;
-        for(int i=0 ; i<12 ;i++){
-            x+=enemies[i].exe;
-        }
-        p_user.kills2=12-x;
+        if(inwar==0){
+            int ch = getch();
+            int x=0;
+            for(int i=0 ; i<12 ;i++){
+                x+=enemies[i].exe;
+            }
+            p_user.kills2=12-x;
 
-        p_user.kills1=p_user.kills2+killna;
-        if(p_user.kills2>=12){
-            final_result(1);
-        }
-        int new_x = player->x, new_y = player->y;
-        if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
-            
-            if(Gspell==1&&Gspellc<=10){
-                Gspellc++;
+            p_user.kills1=p_user.kills2+killna;
+            if(p_user.kills2>=12){
+                final_result(1);
             }
-            else if(Gspellc>10){
-                Gspell=0;
-            }
-            if(Hspell==1&&Hspellc<=10){
-                Hspellc++;
-            }
-            else if(Hspellc>10){
-                Hspell=0;
-            }
-            pace_counter1++;
-            if(p_user.difficulty==0){
-                if(p_user.hunger<=0){
-                    p_user.hunger=0;
-                    p_user.health-=5;
+            int new_x = player->x, new_y = player->y;
+            if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
+                
+                if(Gspell==1&&Gspellc<=10){
+                    Gspellc++;
                 }
-                else{
-                    p_user.hunger-=1;
+                else if(Gspellc>10){
+                    Gspell=0;
+                }
+                if(Hspell==1&&Hspellc<=10){
+                    Hspellc++;
+                }
+                else if(Hspellc>10){
+                    Hspell=0;
+                }
+                pace_counter1++;
+                if(p_user.difficulty==0){
+                    if(p_user.hunger<=0){
+                        p_user.hunger=0;
+                        p_user.health-=5;
+                    }
+                    else{
+                        p_user.hunger-=1;
+                    }
+                }
+                if(p_user.difficulty==1){
+                    if(p_user.hunger<=0){
+                        p_user.hunger=0;
+                        p_user.health-=10;
+                    }
+                    else{
+                        p_user.hunger-=3;
+                    }
+                }
+                if(p_user.difficulty==2){
+                    if(p_user.hunger<=0){
+                        p_user.hunger=0;
+                        p_user.health-=20;
+                    }
+                    else{
+                        p_user.hunger-=5;
+                    }
                 }
             }
-            if(p_user.difficulty==1){
-                if(p_user.hunger<=0){
-                    p_user.hunger=0;
-                    p_user.health-=10;
-                }
-                else{
-                    p_user.hunger-=3;
-                }
-            }
-            if(p_user.difficulty==2){
-                if(p_user.hunger<=0){
-                    p_user.hunger=0;
-                    p_user.health-=20;
-                }
-                else{
-                    p_user.hunger-=5;
-                }
-            }
-        }
-        if (ch == 's' && pace_counter2<5) {
-            pace=2;
-            pace_counter1=0;
-            pace_counter2++;
+            if (ch == 's' && pace_counter2<5) {
+                pace=2;
+                pace_counter1=0;
+                pace_counter2++;
 
-        }
-        if(pace_counter1>=5){
-            pace = 1;
-        }
-        switch (ch) {
-        case '1': new_x -= pace; new_y += pace; break;
-        case '2': new_y += pace; break;
-        case '3': new_x += pace; new_y += pace; break;
-        case '4': new_x -= pace; break;
-        case '6': new_x += pace; break;
-        case '7': new_x -= pace; new_y -= pace; break;
-        case '8': new_y -= pace; break;
-        case '9': new_x += pace; new_y -= pace; break;
-        case 'e':
-            food_table();
-            break;
-        case 'q':main_menu();
-        case 'm':
-            show_count++;
-            if(show_count>=4){
+            }
+            if(pace_counter1>=5){
+                pace = 1;
+            }
+            switch (ch) {
+            case '1': new_x -= pace; new_y += pace; break;
+            case '2': new_y += pace; break;
+            case '3': new_x += pace; new_y += pace; break;
+            case '4': new_x -= pace; break;
+            case '6': new_x += pace; break;
+            case '7': new_x -= pace; new_y -= pace; break;
+            case '8': new_y -= pace; break;
+            case '9': new_x += pace; new_y -= pace; break;
+            case 'e':
+                food_table();
                 break;
+            case 'q':main_menu();
+            case 'm':
+                show_count++;
+                if(show_count>=4){
+                    break;
+                }
+                show_full_map_temporarily(player);
+                break;
+                case 'p': spell_table();
+                    break;
+                case 'i':weapon_table();
+                    break;
+                case ' ':
+                    damage_enemy2(p_user.current_weapon,player);                
+                    break;
             }
-            show_full_map_temporarily(player);
-            break;
+            for (int i = 0; i < 12; i++) {
+                if (enemies[i].exe==1) {
+                    enemy_checker(player, &enemies[i]);
+                }
+            }
+
+            
+            if (p_user.health <= 0) {
+                final_result(0);
+            }
+            if (is_valid_move2(new_x, new_y)) {
+                clear_player2(player);
+                player->prev_char = mvinch(new_y, new_x) & A_CHARTEXT;
+                player->x = new_x;
+                player->y = new_y;
+                battle_room[player->y][player->x]='@';
+                
+            }
+            refresh_map2(player);
+        }
+        else if(inwar==1){
+            if(enemies_war[0].exe==0 && enemies_war[1].exe==0 && enemies_war[2].exe==0){
+                inwar=0;
+                return 1;
+            }
+            int ch = getch();
+            int new_x = player->x, new_y = player->y;
+            if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
+                
+                if(Gspell==1&&Gspellc<=10){
+                    Gspellc++;
+                }
+                else if(Gspellc>10){
+                    Gspell=0;
+                }
+                if(Hspell==1&&Hspellc<=10){
+                    Hspellc++;
+                }
+                else if(Hspellc>10){
+                    Hspell=0;
+                }
+                pace_counter1++;
+                if(p_user.difficulty==0){
+                    if(p_user.hunger<=0){
+                        p_user.hunger=0;
+                        p_user.health-=5;
+                    }
+                    else{
+                        p_user.hunger-=1;
+                    }
+                }
+                if(p_user.difficulty==1){
+                    if(p_user.hunger<=0){
+                        p_user.hunger=0;
+                        p_user.health-=10;
+                    }
+                    else{
+                        p_user.hunger-=3;
+                    }
+                }
+                if(p_user.difficulty==2){
+                    if(p_user.hunger<=0){
+                        p_user.hunger=0;
+                        p_user.health-=20;
+                    }
+                    else{
+                        p_user.hunger-=5;
+                    }
+                }
+            }
+            if (ch == 's' && pace_counter2<5) {
+                pace=2;
+                pace_counter1=0;
+                pace_counter2++;
+
+            }
+            if(pace_counter1>=5){
+                pace = 1;
+            }
+            switch (ch) {
+            case '1': new_x -= pace; new_y += pace; break;
+            case '2': new_y += pace; break;
+            case '3': new_x += pace; new_y += pace; break;
+            case '4': new_x -= pace; break;
+            case '6': new_x += pace; break;
+            case '7': new_x -= pace; new_y -= pace; break;
+            case '8': new_y -= pace; break;
+            case '9': new_x += pace; new_y -= pace; break;
+            case 'e':
+                food_table();
+                break;
+            case 'q':main_menu();
             case 'p': spell_table();
                 break;
             case 'i':weapon_table();
                 break;
             case ' ':
                 damage_enemy2(p_user.current_weapon,player);                
-                break;
-        }
-        for (int i = 0; i < 12; i++) {
-            if (enemies[i].exe==1) {
-                enemy_checker(player, &enemies[i]);
+            break;
             }
-        }
+            for (int i = 0; i < 3; i++) {
+                if (enemies_war[i].exe==1) {
+                    enemy_checker(player, &enemies_war[i]);
+                }
+            }
 
-        
-        if (p_user.health <= 0) {
-            final_result(0);
-        }
-        if (is_valid_move2(new_x, new_y)) {
-            clear_player2(player);
-            player->prev_char = mvinch(new_y, new_x) & A_CHARTEXT;
-            player->x = new_x;
-            player->y = new_y;
-            battle_room[player->y][player->x]='@';
             
+            if (p_user.health <= 0) {
+                final_result(0);
+            }
+            if (is_valid_move2(new_x, new_y)) {
+                clear_player(player);
+                player->prev_char = mvinch(new_y, new_x) & A_CHARTEXT;
+                player->x = new_x;
+                player->y = new_y;
+                war_house[player->y][player->x]='@';
+                
+            }
+            refresh3(player);
         }
-        refresh_map2(player);
+        
 } 
 int enemy_checker(Player *player, Enemy *enemy) {
-    int distance = abs(player->x - enemy->x) + abs(player->y - enemy->y);
-    if (distance <= enemy->following_distance) {
-        enemy->following = 1;
-        
-        if (distance <= enemy->damage_distance&&enemy->exe==1) {
-            switch (enemy->type) {
-                case DEAMON:
-                    p_user.health -= enemy->damage;
-                    break;
-                case FIRE:
-                    p_user.health -= enemy->damage;
-                    break;
-                case GIANT:
-                    p_user.health -= enemy->damage;
-                    break;
-                case SNAKE:
-                    p_user.health -= enemy->damage;
-                    break;
-                case UNDEAD:
-                    p_user.health -= enemy->damage;
-                    break;
-            }
-            attron(COLOR_PAIR(2));
-            mvprintw(38,80,"DAMAGE!!!");
-            getch();
-            mvprintw(38,80,"         ");
-            attroff(COLOR_PAIR(2));
-        } 
-        else if(enemy->exe==1&&wandon==0){
-            int x =enemy->x;
-            int y =enemy->y;
-            if (player->x > enemy->x) x++;
-            else if (player->x < enemy->x) x--;
+    if(inwar==1){
+        int distance = abs(player->x - enemy->x) + abs(player->y - enemy->y);
+        if (distance <= enemy->following_distance) {
+            enemy->following = 1;
             
-            if (player->y > enemy->y) y++;
-            else if (player->y < enemy->y) y--;
-            if(battle_room[y][x]=='.'){
-                battle_room[enemy->y][enemy->x]='.';
-                enemy->x=x;
-                enemy->y=y;
-                battle_room[enemy->y][enemy->x]=enemy->face;
+            if (distance <= enemy->damage_distance&&enemy->exe==1) {
+                switch (enemy->type) {
+                    case DEAMON:
+                        p_user.health -= enemy->damage;
+                        break;
+                    case FIRE:
+                        p_user.health -= enemy->damage;
+                        break;
+                    case GIANT:
+                        p_user.health -= enemy->damage;
+                        break;
+                    case SNAKE:
+                        p_user.health -= enemy->damage;
+                        break;
+                    case UNDEAD:
+                        p_user.health -= enemy->damage;
+                        break;
+                }
+                attron(COLOR_PAIR(2));
+                mvprintw(38,80,"DAMAGE!!!");
+                getch();
+                mvprintw(38,80,"         ");
+                attroff(COLOR_PAIR(2));
+            } 
+            else if(enemy->exe==1&&wandon==0){
+                int x =enemy->x;
+                int y =enemy->y;
+                if (player->x > enemy->x) x++;
+                else if (player->x < enemy->x) x--;
+                
+                if (player->y > enemy->y) y++;
+                else if (player->y < enemy->y) y--;
+                if(war_house[y][x]=='.'){
+                    war_house[enemy->y][enemy->x]='.';
+                    enemy->x=x;
+                    enemy->y=y;
+                    war_house[enemy->y][enemy->x]=enemy->face;
+                }
             }
         }
+        
+            return enemy->following;
     }
+    else if(inwar==0){
+        int distance = abs(player->x - enemy->x) + abs(player->y - enemy->y);
+        if (distance <= enemy->following_distance) {
+            enemy->following = 1;
+            
+            if (distance <= enemy->damage_distance&&enemy->exe==1) {
+                switch (enemy->type) {
+                    case DEAMON:
+                        p_user.health -= enemy->damage;
+                        break;
+                    case FIRE:
+                        p_user.health -= enemy->damage;
+                        break;
+                    case GIANT:
+                        p_user.health -= enemy->damage;
+                        break;
+                    case SNAKE:
+                        p_user.health -= enemy->damage;
+                        break;
+                    case UNDEAD:
+                        p_user.health -= enemy->damage;
+                        break;
+                }
+                attron(COLOR_PAIR(2));
+                mvprintw(38,80,"DAMAGE!!!");
+                getch();
+                mvprintw(38,80,"         ");
+                attroff(COLOR_PAIR(2));
+            } 
+            else if(enemy->exe==1&&wandon==0){
+                int x =enemy->x;
+                int y =enemy->y;
+                if (player->x > enemy->x) x++;
+                else if (player->x < enemy->x) x--;
+                
+                if (player->y > enemy->y) y++;
+                else if (player->y < enemy->y) y--;
+                if(battle_room[y][x]=='.'){
+                    battle_room[enemy->y][enemy->x]='.';
+                    enemy->x=x;
+                    enemy->y=y;
+                    battle_room[enemy->y][enemy->x]=enemy->face;
+                }
+            }
+        }
+        
+            return enemy->following;
+        }
     
-    return enemy->following;
 }
 int is_valid_move2(int x, int y) {
     char ch = mvinch(y, x) & A_CHARTEXT;
@@ -5916,6 +6071,8 @@ void refresh_map2(Player *player) {
 int start_battle(){
     clear();
     show_count = 0;
+    pace=1;
+    pace_counter1=0;
     pace_counter2=0;
     Player player;
     player.x = 70;
@@ -6036,27 +6193,53 @@ int damage_enemy2(char weapon,Player *player){
     if(Gspell==1){
             damage*=2;
     }
-    for(int i=0 ; i<12 ;i++){
-        if(((player->x==enemies[i].x&&player->y >= enemies[i].y&&aim==1)||
-        (player->x==enemies[i].x&&player->y <= enemies[i].y&&aim==3)||
-        (player->y==enemies[i].y&&player->x >= enemies[i].x&&aim==2)||
-        (player->y==enemies[i].y&&player->x <= enemies[i].x&&aim==4))&&
-        (abs(player->x-enemies[i].x)<=damage_distance&&abs(player->y-enemies[i].y)<=damage_distance)){
-                    enemies[i].health-=damage;
-                    attron(COLOR_PAIR(3));
-                    mvprintw(2,COLS/2-17,"DAMAGE TO ENEMY,KEEP GOING!");
-                    attroff(COLOR_PAIR(3));
-                    getch();
-                    mvprintw(2,COLS/2-17,"                           ");
-                    if(enemies[i].health<=0&&enemies[i].exe==1){
-                        battle_room[enemies[i].y][enemies[i].x]='.';
-                        enemies[i].exe=0;
+    if(inwar==0){
+        for(int i=0 ; i<12 ;i++){
+            if(((player->x==enemies[i].x&&player->y >= enemies[i].y&&aim==1)||
+            (player->x==enemies[i].x&&player->y <= enemies[i].y&&aim==3)||
+            (player->y==enemies[i].y&&player->x >= enemies[i].x&&aim==2)||
+            (player->y==enemies[i].y&&player->x <= enemies[i].x&&aim==4))&&
+            (abs(player->x-enemies[i].x)<=damage_distance&&abs(player->y-enemies[i].y)<=damage_distance)){
+                        enemies[i].health-=damage;
                         attron(COLOR_PAIR(3));
-                        mvprintw(2,COLS/2-10,"ELIMINATED!!!");
+                        mvprintw(2,COLS/2-17,"DAMAGE TO ENEMY,KEEP GOING!");
                         attroff(COLOR_PAIR(3));
-                    }
+                        getch();
+                        mvprintw(2,COLS/2-17,"                           ");
+                        if(enemies[i].health<=0&&enemies[i].exe==1){
+                            battle_room[enemies[i].y][enemies[i].x]='.';
+                            enemies[i].exe=0;
+                            attron(COLOR_PAIR(3));
+                            mvprintw(2,COLS/2-10,"ELIMINATED!!!");
+                            attroff(COLOR_PAIR(3));
+                        }
+            }
         }
     }
+    else if(inwar==1){
+        for(int i=0 ; i<3 ;i++){
+            if(((player->x==enemies_war[i].x&&player->y >= enemies_war[i].y&&aim==1)||
+            (player->x==enemies_war[i].x&&player->y <= enemies_war[i].y&&aim==3)||
+            (player->y==enemies_war[i].y&&player->x >= enemies_war[i].x&&aim==2)||
+            (player->y==enemies_war[i].y&&player->x <= enemies_war[i].x&&aim==4))&&
+            (abs(player->x-enemies_war[i].x)<=damage_distance&&abs(player->y-enemies_war[i].y)<=damage_distance)){
+                        enemies_war[i].health-=damage;
+                        attron(COLOR_PAIR(3));
+                        mvprintw(2,COLS/2-17,"DAMAGE TO ENEMY,KEEP GOING!");
+                        attroff(COLOR_PAIR(3));
+                        getch();
+                        mvprintw(2,COLS/2-17,"                           ");
+                        if(enemies_war[i].health<=0&&enemies_war[i].exe==1){
+                            war_house[enemies_war[i].y][enemies_war[i].x]='.';
+                            enemies_war[i].exe=0;
+                            attron(COLOR_PAIR(3));
+                            mvprintw(2,COLS/2-10,"ELIMINATED!!!");
+                            attroff(COLOR_PAIR(3));
+                        }
+            }
+        }
+    }
+    
 }
 void music(){
     attron(COLOR_PAIR(10));
@@ -6756,4 +6939,112 @@ void stop_music(){
 }
 bool is_music_playing() {
     return Mix_PlayingMusic() == 1 && Mix_PausedMusic() == 0;
+}
+void start_war(){
+    clear();
+    inwar=1;
+    show_count = 0;
+    pace=1;
+    pace_counter1=0;
+    pace_counter2=0;
+    Player player;
+    player.x = 70;
+    player.y = 25;
+    create_war_house();
+    refresh3(&player);  
+    while (1) {
+        int t = move_player(&player);
+        if(t==1){
+            break;
+        }
+    }
+}
+void refresh3(Player *player){
+    draw_player(player);
+    draw_war_house();
+    mvprintw(LINES-2,2,"                              ");
+    mvprintw(LINES-2,20,"                              ");
+    mvprintw(LINES-3,62,"                                         ");
+    draw_bar(LINES-2, 62, 20, p_user.health, 10000, "Health");
+    draw_bar(LINES-3, 62, 20, p_user.hunger, 100, "Power");
+    attron(COLOR_PAIR(1));
+    mvprintw(LINES-2,14,"Score : %d",p_user.score);
+    mvprintw(LINES-2,2,"Gold : %d",p_user.gold);
+    mvprintw(LINES-2,26,"Kills : %d",p_user.kills1);
+    attroff(COLOR_PAIR(1));
+    mvprintw(LINES-6,2,"                              ");
+    //attron(COLOR_PAIR(7));
+    
+    //attroff(COLOR_PAIR(7));
+    attron(COLOR_PAIR(10));
+    switch(p_user.current_weapon){
+        case 'm':
+            mvprintw(LINES-6,2,"current weapon : MACE");
+        break;
+        case 'd':
+            mvprintw(LINES-6,2,"current weapon : DAGGER %d",p_user.weapon_bar.dagger);
+        break;
+        case 'w':
+            mvprintw(LINES-6,2,"current weapon : MAGIC WAND %d",p_user.weapon_bar.magic_wand);
+        break;
+        case 'a':
+            mvprintw(LINES-6,2,"current weapon : ARROWS %d",p_user.weapon_bar.arrow);
+        break;
+        case 's':
+            mvprintw(LINES-6,2,"current weapon : SWORD");
+        break;
+    }
+    attroff(COLOR_PAIR(10));
+    attron(COLOR_PAIR(6));
+        mvprintw(LINES-5,2,"Health spell : %d",p_user.spell_bar.H);
+        mvprintw(LINES-4,2,"Speed  spell : %d",p_user.spell_bar.S);
+        mvprintw(LINES-3,2,"Power  spell : %d",p_user.spell_bar.G);
+    attroff(COLOR_PAIR(6));
+    attron(COLOR_PAIR(9));
+        mvprintw(LINES-5,20,"Normal food : %d",p_user.food_bar.normal);
+        mvprintw(LINES-4,20,"Speedy food : %d",p_user.food_bar.speed);
+        mvprintw(LINES-3,20,"Power  food : %d",p_user.food_bar.special);
+    attroff(COLOR_PAIR(9));
+    refresh();  
+}
+int create_war_house(){
+    memset(war_house,' ',sizeof(war_house));
+    for (int i = 5; i < 35; i++) {
+        war_house[i][45]='|';
+        war_house[i][130]='|';
+    }
+    for (int i = 45; i <= 130; i++) {
+        war_house[5][i]='-';
+        war_house[35][i]='-';
+    }
+    for (int i = 6; i <= 34; i++) {
+        for (int j = 46; j <130; j++) {
+            war_house[i][j]='.';
+        }
+    }
+    for (int i = 0; i < 3; i++) {
+        int y = rand() % 29 + 6;  
+        int x = rand() % 83 + 46;
+        enemies_war[i] = create_random_enemy(y, x);
+        war_house[y][x]=enemies_war[i].face;
+    }
+}
+void draw_war_house(){
+    for(int i=0; i<MAP_HEIGHT ;i++){
+        for(int j=0 ; j<MAP_WIDTH ;j++){
+            if(war_house[i][j]=='|'||war_house[i][j]=='-'){
+                attron(COLOR_PAIR(1));
+                mvaddch(i,j,war_house[i][j]);
+                attroff(COLOR_PAIR(1));
+            }
+            else if(war_house[i][j]=='G'||war_house[i][j]=='S'||war_house[i][j]=='F'||war_house[i][j]=='U'||war_house[i][j]=='D'){
+                attron(COLOR_PAIR(2));
+                mvaddch(i,j,war_house[i][j]);
+                attroff(COLOR_PAIR(2));
+            }
+            else{
+                mvaddch(i,j,war_house[i][j]);
+            }
+        }
+    }
 }
