@@ -3474,17 +3474,6 @@ int handle_input(Player *player) {
     else if(t==0&&is_music_playing){
         stop_music();
     }
-    // else if (t==0 && is_music_playing()) {
-    //         stop_music();
-    // }
-    int x=0;
-    for(int i=0 ; i<6 ;i++){
-        x+=enemies_map1[i].exe;
-        x+=enemies_map2[i].exe;
-        x+=enemies_map3[i].exe;
-        x+=enemies_map4[i].exe;
-    }
-    p_user.kills1=23-x;
     enemy_checker2(player);
     if(p_user.health<=0){
         clear();
@@ -3787,7 +3776,10 @@ int handle_input(Player *player) {
                     }
                 }
             }
-
+            else if(map1[new_y][new_x]=='^'){
+                start_war();
+                clear();
+            }
             else if((map2[new_y][new_x]=='T'||map2[new_y][new_x]=='Z')&&night==0)
             {
                 gold_manager(map2[new_y][new_x]);
@@ -3940,6 +3932,10 @@ int handle_input(Player *player) {
                     map3[15][72] = '.';
                     map3[13][70] = 'Q';
                 }
+            }
+            else if(map1[new_y][new_x]=='^'){
+                start_war();
+                clear();
             }
             else if((map3[new_y][new_x]=='%'||map3[new_y][new_x]=='X'||map3[new_y][new_x]=='V')&&night==0)
             {
@@ -4096,6 +4092,10 @@ int handle_input(Player *player) {
                     map4[16][52] = '.';
                     map4[17][60] = 'Q';
                 }
+            }
+            else if(map1[new_y][new_x]=='^'){
+                start_war();
+                clear();
             }
             else if(map4[new_y][new_x]=='&' && get_room_id(new_x,new_y)==4){
                 char *code = generate_code();
@@ -5493,6 +5493,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                             enemies_map1[i].exe=0;
                             attron(COLOR_PAIR(3));
                             mvprintw(2,COLS/2-10,"ELIMINATED!!!");
+                            p_user.kills1++;
                             attroff(COLOR_PAIR(3));
                             refresh();
                             napms(1000);
@@ -5520,6 +5521,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                             enemies_map2[i].exe=0;
                             attron(COLOR_PAIR(3));
                             mvprintw(2,COLS/2-10,"ELIMINATED!!!");
+                            p_user.kills1++;
                             attroff(COLOR_PAIR(3));
                             refresh();
                             napms(1000);
@@ -5547,6 +5549,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                             enemies_map3[i].exe=0;
                             attron(COLOR_PAIR(3));
                             mvprintw(2,COLS/2-10,"ELIMINATED!!!");
+                            p_user.kills1++;
                             attroff(COLOR_PAIR(3));
                             refresh();
                             napms(1000);
@@ -5574,6 +5577,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                             enemies_map4[i].exe=0;
                             attron(COLOR_PAIR(3));
                             mvprintw(2,COLS/2-10,"ELIMINATED!!!");
+                            p_user.kills1++;
                             attroff(COLOR_PAIR(3));
                             refresh();
                             napms(1000);
@@ -6234,6 +6238,7 @@ int damage_enemy2(char weapon,Player *player){
                             enemies_war[i].exe=0;
                             attron(COLOR_PAIR(3));
                             mvprintw(2,COLS/2-10,"ELIMINATED!!!");
+                            p_user.kills1++;
                             attroff(COLOR_PAIR(3));
                         }
             }
