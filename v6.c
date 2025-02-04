@@ -125,6 +125,7 @@ int play;
 int cp=0;
 char main_music[300];
 char current_music[300];
+int killna;
 void main_menu();
 void log_in();
 void sign_up();
@@ -182,7 +183,6 @@ void placing_enemy_map2();
 void placing_enemy_map3();
 void placing_enemy_map4();
 int is_valid_enemy(int y , int x,char map[MAP_HEIGHT][MAP_WIDTH]);
-void draw_enemy(Player *player);
 void clear_enemy(Enemy enemy);
 void damage_player(Enemy *enemy,Player *player);
 int weapon_manager(char weapon);
@@ -494,9 +494,10 @@ void log_in(){
         getch();
         return;
     } else {
+        
         User user;
         int ch;
-
+        
         while (1) {
             clear();
             attron(COLOR_PAIR(3));
@@ -508,13 +509,6 @@ void log_in(){
             clrtoeol();
             echo();
             getstr(l_user.username);
-            noecho();
-            mvprintw(LINES / 2 - 2, COLS / 2 - 30 + 7, "Enter your password: ");
-            clrtoeol();
-            echo();
-            getstr(l_user.password);
-            noecho();
-
             FILE *fptr = fopen("users.txt", "r");
             if (fptr == NULL) {
                 attron(COLOR_PAIR(2));
@@ -526,8 +520,7 @@ void log_in(){
             int valid = 0;
             while (fscanf(fptr, "%s %s %s %d %d %d %d %d %d %d", user.username, user.password, user.email,
             &user.score, &user.gold, &user.game, &user.color, &user.difficulty , &user.kills1,&user.level_num) != EOF) {
-                if (strcmp(l_user.username, user.username) == 0 && strcmp(l_user.password, user.password) == 0) {
-                    valid = 1;
+                if(strcmp(l_user.username,user.username)==0){
                     strcpy(l_user.username, user.username);
                     strcpy(l_user.password, user.password);
                     strcpy(l_user.email, user.email);
@@ -538,8 +531,35 @@ void log_in(){
                     l_user.difficulty = user.difficulty;
                     l_user.kills1 = user.kills1;
                     l_user.level_num = user.level_num;
-                    break;
                 }
+            }
+            noecho();
+            mvprintw(LINES / 2 - 2, COLS / 2 - 30 + 7, "Enter your password: (if forgotten Enter forget)");
+            getch();
+            clrtoeol();
+            echo();
+            char temp_pass[200];
+            getstr(temp_pass);
+            noecho();
+            if(strcmp(temp_pass,"forgot")==0){
+                mvprintw(LINES / 2-1, COLS / 2 - 30 + 7,"Enter your email :");
+                char temp_email[200];
+                echo();
+                getstr(temp_email);
+                if(strcmp(temp_email,l_user.email)==0){
+                    mvprintw(LINES / 2, COLS / 2 - 30 + 7,"Your password is : %s",l_user.password);
+                    getch();
+                    continue;
+
+                }
+                else{
+                    mvprintw(LINES / 2, COLS / 2 - 30 + 7,"Wrong email please try again later!");
+                    getch();
+                    continue;
+                }
+            }
+            else if(strcmp(temp_pass,l_user.password)==0){
+                valid=1;
             }
 
             fclose(fptr);
@@ -1115,18 +1135,18 @@ void start_new_game(){
     int rows,cols;
     getmaxyx(stdscr, rows, cols);
         attron(COLOR_PAIR(6));
-        for (int i = 1; i < rows - 1; i++) {
-            mvprintw(i, 1, "|");
-            mvprintw(i, cols - 2, "|");
+        for (int i = 0; i < rows ; i++) {
+            mvprintw(i, 0, "|");
+            mvprintw(i, cols -1, "|");
         }
-        for (int j = 1; j < cols - 1; j++) {
-            mvprintw(1, j, "=");
-            mvprintw(rows - 2, j, "=");
+        for (int j = 0; j < cols; j++) {
+            mvprintw(0, j, "=");
+            mvprintw(rows - 1, j, "=");
         }
-        mvprintw(1, 1, "+");
-        mvprintw(1, cols - 2, "+");
-        mvprintw(rows - 2, 1, "+");
-        mvprintw(rows - 2, cols - 2, "+");
+        mvprintw(0, 0, "+");
+        mvprintw(0, cols - 1, "+");
+        mvprintw(rows - 1, 0, "+");
+        mvprintw(rows - 1, cols - 1, "+");
         attroff(COLOR_PAIR(6));
     p_user.level_num=1;
     p_user.gold = 0;
@@ -1183,6 +1203,8 @@ void start_level2(){
     show_count = 0;
     cp=0;
     p_user.level_num=2;
+    pace=1;
+    pace_counter1=0;
     pace_counter2=0;
     memset(memory_map2,0,sizeof(memory_map2));
     Player player = {12,10, '.'};
@@ -1213,6 +1235,8 @@ void start_level3(){
         cp=0;
     show_count = 0;
     p_user.level_num=3;
+    pace=1;
+    pace_counter1=0;
     pace_counter2=0;
     memset(memory_map3,0,sizeof(memory_map3)); 
     Player player = {20,26, '.'};
@@ -1242,6 +1266,8 @@ void start_level4(){
         attroff(COLOR_PAIR(2));
         cp=0;
     show_count = 0;
+    pace=1;
+    pace_counter1=0;
     pace_counter2=0;
     p_user.level_num=4;
     memset(memory_map4,0,sizeof(memory_map4));
@@ -3439,11 +3465,14 @@ int handle_input(Player *player) {
         strcpy(current_music,main_music);
         play_music(main_music);
     }
-    if(t==1&&is_music_playing&&cp==0){
+    else if(t==1&&is_music_playing&&cp==0){
         cp=1;
         stop_music();
         play_music("peritune-spook4(chosic.com).mp3");
         strcpy(current_music,"peritune-spook4(chosic.com).mp3");
+    }
+    else if(t==0&&is_music_playing){
+        stop_music();
     }
     // else if (t==0 && is_music_playing()) {
     //         stop_music();
@@ -3479,14 +3508,6 @@ int handle_input(Player *player) {
             }
             else if(Hspellc>10){
                 Hspell=0;
-            }
-            if(Sspell==1&&Sspellc<=10){
-                pace = 2;
-                Sspellc++;
-            }
-            else if(Sspellc>10){
-                pace = 1;
-                Sspell=0;
             }
             pace_counter1++;
             if(p_user.difficulty==0){
@@ -3525,7 +3546,7 @@ int handle_input(Player *player) {
             pace_counter2++;
 
         }
-        if(pace_counter1>=5 || Sspellc>=10){
+        if(pace_counter1>=5){
             pace = 1;
         }
         switch (ch) {
@@ -3647,14 +3668,6 @@ int handle_input(Player *player) {
             else if(Hspellc>10){
                 Hspell=0;
             }
-            if(Sspell==1&&Sspellc<=10){
-                pace = 2;
-                Sspellc++;
-            }
-            else if(Sspellc>10){
-                pace = 1;
-                Sspell=0;
-            }
             pace_counter1++;
             if(p_user.difficulty==0){
                 if(p_user.hunger<=0){
@@ -3692,7 +3705,7 @@ int handle_input(Player *player) {
         pace_counter2++;
 
         }
-        if(pace_counter1>=5 || Sspellc>=10){
+        if(pace_counter1>=5){
             pace = 1;
         }
         switch (ch) {
@@ -3819,14 +3832,6 @@ int handle_input(Player *player) {
             else if(Hspellc>10){
                 Hspell=0;
             }
-            if(Sspell==1&&Sspellc<=10){
-                pace = 2;
-                Sspellc++;
-            }
-            else if(Sspellc>10){
-                pace = 1;
-                Sspell=0;
-            }
             pace_counter1++;
             if(p_user.difficulty==0){
                 if(p_user.hunger<=0){
@@ -3864,7 +3869,7 @@ int handle_input(Player *player) {
         pace_counter2++;
 
         }
-        if(pace_counter1>=5 || Sspellc>=10){
+        if(pace_counter1>=5){
             pace = 1;
         }
         switch (ch) {
@@ -3990,14 +3995,6 @@ int handle_input(Player *player) {
             else if(Hspellc>10){
                 Hspell=0;
             }
-            if(Sspell==1&&Sspellc<=10){
-                pace = 2;
-                Sspellc++;
-            }
-            else if(Sspellc>10){
-                pace = 1;
-                Sspell=0;
-            }
             pace_counter1++;
             if(p_user.difficulty==0){
                 if(p_user.hunger<=0){
@@ -4035,7 +4032,7 @@ int handle_input(Player *player) {
         pace_counter2++;
 
         }
-        if(pace_counter1>=5 || Sspellc>=10){
+        if(pace_counter1>=5){
             pace = 1;
         }
         switch (ch) {
@@ -4248,7 +4245,6 @@ void refresh_map(Player *player,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[M
     attroff(COLOR_PAIR(i));
     update_memory_map(player->x, player->y,memory_map);
     draw_visible_map(player->x, player->y,memory_map,map);
-    draw_enemy(player);
     draw_player(player);
     mvprintw(LINES-2,2,"                              ");
     mvprintw(LINES-2,20,"                              ");
@@ -5106,8 +5102,11 @@ int spell_table(){
             } else {
                 mvprintw(start_y + 8, start_x + 2, "Speedy!");
                 p_user.spell_bar.S--;
-                Sspell = 1;
-                Sspellc = 0;
+                // Sspell = 1;
+                // Sspellc = 0;
+                pace=2;
+                pace_counter1=0;
+                pace_counter2=0;
                 getch();
                 clear();
                 break;
@@ -5220,718 +5219,6 @@ int is_valid_enemy(int y , int x,char map[MAP_HEIGHT][MAP_WIDTH]){
     else{
         return 0;
     }
-}
-void draw_enemy(Player *player){
-    if(gmsign1!=0){
-        int new_x,new_y;
-        if(p_user.level_num==1){
-            if(get_room_id(player->x,player->y)==1&&enemy_map1[0].exe==1){
-                if(abs(player->x - enemy_map1[0].x) < enemy_map1[0].following_distance && abs(player->y - enemy_map1[0].y) < enemy_map1[0].following_distance){
-                    damage_player(&enemy_map1[0],player);
-                    new_x=enemy_map1[0].x;
-                    new_y=enemy_map1[0].y;
-                    int x0 =enemy_map1[0].x;
-                    int y0=enemy_map1[0].y;
-                    int static flag;
-                    flag=0;
-                    int s = 1;
-                    if (player->x > enemy_map1[0].x) if(s)new_x++;
-                    else if (player->x < enemy_map1[0].x)if(s) new_x--;
-                    if (player->y > enemy_map1[0].y) if(s)new_y++;
-                    else if (player->y < enemy_map1[0].y)if(s) new_y--;
-                    if(is_valid_enemy(new_y,new_x,map1)){
-                        if(flag==0){
-                            enemy_map1[0].exe=1;
-                            map1[y0][x0]='.';
-                            flag=1;
-                        }
-                        enemy_map1[0].perv=map1[enemy_map1[0].y][enemy_map1[0].x];
-                        clear_enemy(enemy_map1[0]);
-                        enemy_map1[0].x=new_x;
-                        enemy_map1[0].y=new_y;
-                        map1[new_y][new_x]=enemy_map1[0].face;
-                        attron(COLOR_PAIR(2));
-                        mvprintw(enemy_map1[0].y,enemy_map1[0].x,"%c",enemy_map1[0].face);
-                        attroff(COLOR_PAIR(2));
-                    }
-                }
-            }
-            else if(enemy_map1[0].exe==0){
-                map1[enemy_map1[0].y][enemy_map1[0].x]='.';
-                clear_enemy(enemy_map1[0]);
-            }
-            if(get_room_id(player->x,player->y)==2&&enemy_map1[1].exe==1){
-                if(abs(player->x - enemy_map1[1].x) <= enemy_map1[1].following_distance && abs(player->y - enemy_map1[1].y) <= enemy_map1[1].following_distance){
-                    damage_player(&enemy_map1[1],player);
-                    new_x=enemy_map1[1].x;
-                    new_y=enemy_map1[1].y;
-                    int x0=enemy_map1[1].x;
-                    int y0=enemy_map1[1].y;
-                    int s = 1;
-                    int static flag;
-                    flag=0;
-                    if (player->x > enemy_map1[1].x) if(s)new_x++;
-                    else if (player->x < enemy_map1[1].x) if(s)new_x--;
-                    if (player->y > enemy_map1[1].y) if(s)new_y++;
-                    else if (player->y < enemy_map1[1].y) if(s)new_y--;
-                      
-                        if(flag==0){
-                            map1[y0][x0]='.';
-                            flag=1;
-                        }
-                        enemy_map1[1].perv=map1[enemy_map1[1].y][enemy_map1[1].x];
-                        clear_enemy(enemy_map1[1]);
-                        enemy_map1[1].x=new_x;
-                        enemy_map1[1].y=new_y;
-                        map1[new_y][new_x]=enemy_map1[1].face;
-                        attron(COLOR_PAIR(2));
-                        mvprintw(enemy_map1[1].y,enemy_map1[1].x,"%c",enemy_map1[1].face);
-                        attroff(COLOR_PAIR(2));
-                      
-                }
-            }
-            else if(enemy_map1[1].exe==0){
-                map1[enemy_map1[1].y][enemy_map1[1].x]='.';
-                clear_enemy(enemy_map1[1]);
-            }
-            if(get_room_id(player->x,player->y)==3&&enemy_map1[2].exe==1){
-                if(abs(player->x - enemy_map1[2].x) < enemy_map1[2].following_distance && abs(player->y - enemy_map1[2].y) < enemy_map1[2].following_distance){
-                    damage_player(&enemy_map1[2],player);
-                    new_x=enemy_map1[2].x;
-                    new_y=enemy_map1[2].y;
-                    int x0=enemy_map1[2].x;
-                    int y0=enemy_map1[2].y;
-                    int s = 1;
-                    int static flag;
-                    flag=0;
-                    if (player->x > enemy_map1[2].x) if(s)new_x++;
-                    else if (player->x < enemy_map1[2].x) if(s)new_x--;
-                    if (player->y > enemy_map1[2].y) if(s)new_y++;
-                    else if (player->y < enemy_map1[2].y) if(s)new_y--;
-                    if(is_valid_enemy(new_y,new_x,map1)){
-                        if(flag==0){
-                            map1[y0][x0]='.';
-                            flag=1;
-                        }
-                        enemy_map1[2].perv=map1[enemy_map1[2].y][enemy_map1[2].x];
-                        clear_enemy(enemy_map1[2]);
-                        enemy_map1[2].x=new_x;
-                        enemy_map1[2].y=new_y;
-                        map1[new_y][new_x]=enemy_map1[2].face;
-                        attron(COLOR_PAIR(2));
-                        mvprintw(enemy_map1[2].y,enemy_map1[2].x,"%c",enemy_map1[2].face);
-                        attroff(COLOR_PAIR(2));
-                    }
-                }
-            }
-            else if(enemy_map1[2].exe==0){
-                map1[enemy_map1[2].y][enemy_map1[2].x]='.';
-                clear_enemy(enemy_map1[2]);
-            }
-            if(get_room_id(player->x,player->y)==4&&enemy_map1[3].exe==1){
-                if(abs(player->x - enemy_map1[3].x) < enemy_map1[3].following_distance && abs(player->y - enemy_map1[3].y) < enemy_map1[3].following_distance){
-                    damage_player(&enemy_map1[3],player);
-                    new_x=enemy_map1[3].x;
-                    new_y=enemy_map1[3].y;
-                    int x0=enemy_map1[3].x;
-                    int y0=enemy_map1[3].y;
-                    int s = 1;
-                    int static flag;
-                    flag=0;
-                    if (player->x > enemy_map1[3].x) if(s)new_x++;
-                    else if (player->x < enemy_map1[3].x) if(s)new_x--;
-                    if (player->y > enemy_map1[3].y) if(s)new_y++;
-                    else if (player->y < enemy_map1[3].y) if(s)new_y--;
-                    if(is_valid_enemy(new_y,new_x,map1)){
-                        if(flag==0){
-                            map1[y0][x0]='.';
-                            flag=1;
-                        }
-                        map1[y0][x0]='.';
-                        enemy_map1[3].perv=map1[enemy_map1[3].y][enemy_map1[3].x];
-                        clear_enemy(enemy_map1[3]);
-                        enemy_map1[3].x=new_x;
-                        enemy_map1[3].y=new_y;
-                        map1[new_y][new_x]=enemy_map1[3].face;
-                        attron(COLOR_PAIR(2));
-                        mvprintw(enemy_map1[3].y,enemy_map1[3].x,"%c",enemy_map1[3].face);
-                        attroff(COLOR_PAIR(2));
-                    }
-                }
-            }
-            else if(enemy_map1[3].exe==0){
-                map1[enemy_map1[3].y][enemy_map1[3].x]='.';
-                clear_enemy(enemy_map1[3]);
-            }
-            if(get_room_id(player->x,player->y)==5&&enemy_map1[4].exe==1){
-                if(abs(player->x - enemy_map1[4].x) < enemy_map1[4].following_distance && abs(player->y - enemy_map1[4].y) < enemy_map1[4].following_distance){
-                    damage_player(&enemy_map1[4],player);
-                    new_x=enemy_map1[4].x;
-                    new_y=enemy_map1[4].y;
-                    int x0=enemy_map1[4].x;
-                    int y0=enemy_map1[4].y;
-                    int s = 1;
-                    int static flag;
-                    flag=0;
-                    if (player->x > enemy_map1[4].x) if(s)new_x++;
-                    else if (player->x < enemy_map1[4].x) if(s)new_x--;
-                    if (player->y > enemy_map1[4].y) if(s)new_y++;
-                    else if (player->y < enemy_map1[4].y) if(s)new_y--;
-                    if(is_valid_enemy(new_y,new_x,map1)){
-                        if(flag==0){
-                            map1[y0][x0]='.';
-                            flag=1;
-                        }
-                        map1[y0][x0]='.';
-                        enemy_map1[4].perv=map1[enemy_map1[4].y][enemy_map1[4].x];
-                        clear_enemy(enemy_map1[4]);
-                        enemy_map1[4].x=new_x;
-                        enemy_map1[4].y=new_y;
-                        map1[new_y][new_x]=enemy_map1[4].face;
-                        attron(COLOR_PAIR(2));
-                        mvprintw(enemy_map1[4].y,enemy_map1[4].x,"%c",enemy_map1[4].face);
-                        attroff(COLOR_PAIR(2));
-                    }
-                }
-            }
-            else if(enemy_map1[4].exe==0){
-                map1[enemy_map1[4].y][enemy_map1[4].x]='.';
-                clear_enemy(enemy_map1[4]);
-            }
-            if(get_room_id(player->x,player->y)==6&&enemy_map1[5].exe==1){
-                if(abs(player->x - enemy_map1[5].x) < enemy_map1[5].following_distance && abs(player->y - enemy_map1[5].y) < enemy_map1[5].following_distance){
-                    damage_player(&enemy_map1[5],player);
-                    new_x=enemy_map1[5].x;
-                    new_y=enemy_map1[5].y;
-                    int x0=enemy_map1[5].x;
-                    int y0=enemy_map1[5].y;
-                    int s = 1;
-                    int static flag;
-                    flag=0;
-                    if (player->x > enemy_map1[5].x) if(s)new_x++;
-                    else if (player->x < enemy_map1[5].x) if(s)new_x--;
-                    if (player->y > enemy_map1[5].y) if(s)new_y++;
-                    else if (player->y < enemy_map1[5].y) if(s)new_y--;
-                    if(is_valid_enemy(new_y,new_x,map1)){
-                        if(flag==0){
-                            map1[y0][x0]='.';
-                            flag=1;
-                        }
-                        map1[y0][x0]='.';
-                        enemy_map1[5].perv=map1[enemy_map1[5].y][enemy_map1[5].x];
-                        clear_enemy(enemy_map1[5]);
-                        enemy_map1[5].x=new_x;
-                        enemy_map1[5].y=new_y;
-                        map1[new_y][new_x]=enemy_map1[5].face;
-                        attron(COLOR_PAIR(2));
-                        mvprintw(enemy_map1[5].y,enemy_map1[5].x,"%c",enemy_map1[5].face);
-                        attroff(COLOR_PAIR(2));
-                    }
-                }
-            }
-            else if(enemy_map1[5].exe==0){
-                map1[enemy_map1[5].y][enemy_map1[5].x]='.';
-                clear_enemy(enemy_map1[5]);
-            }
-        }
-        else if(p_user.level_num==2){
-            if(get_room_id(player->x,player->y)==1&&enemy_map2[0].exe==1){
-                if(abs(player->x - enemy_map2[0].x) < enemy_map2[0].following_distance && abs(player->y - enemy_map2[0].y) < enemy_map2[0].following_distance){
-                    damage_player(&enemy_map2[0],player);
-                    new_x=enemy_map2[0].x;
-                    new_y=enemy_map2[0].y;
-                    int x0 =enemy_map2[0].x;
-                    int y0=enemy_map2[0].y;
-                    int static flag;
-                    flag=0;
-                    int s = 1;
-                    if (player->x > enemy_map2[0].x) if(s)new_x++;
-                    else if (player->x < enemy_map2[0].x)if(s) new_x--;
-                    if (player->y > enemy_map2[0].y) if(s)new_y++;
-                    else if (player->y < enemy_map2[0].y)if(s) new_y--;
-                    if(is_valid_enemy(new_y,new_x,map1)){
-                        if(flag==0){
-                            enemy_map2[0].exe=1;
-                            map1[y0][x0]='.';
-                            flag=1;
-                        }
-                        enemy_map2[0].perv=map1[enemy_map2[0].y][enemy_map2[0].x];
-                        clear_enemy(enemy_map2[0]);
-                        enemy_map2[0].x=new_x;
-                        enemy_map2[0].y=new_y;
-                        map1[new_y][new_x]=enemy_map2[0].face;
-                        attron(COLOR_PAIR(2));
-                        mvprintw(enemy_map2[0].y,enemy_map2[0].x,"%c",enemy_map2[0].face);
-                        attroff(COLOR_PAIR(2));
-                    }
-                }
-            }
-            if(enemy_map2[0].exe==0){
-                map2[enemy_map2[0].y][enemy_map2[0].x]='.';
-                clear_enemy(enemy_map2[0]);
-            }
-            if(get_room_id(player->x,player->y)==2&&enemy_map2[1].exe==1){
-                if(abs(player->x - enemy_map2[1].x) < enemy_map2[1].following_distance && abs(player->y - enemy_map2[1].y) < enemy_map2[1].following_distance){
-                    damage_player(&enemy_map2[1],player);
-                    new_x=enemy_map2[1].x;
-                    new_y=enemy_map2[1].y;
-                    int x0 =enemy_map2[1].x;
-                    int y0=enemy_map2[1].y;
-                    int static flag;
-                    flag=0;
-                    int s = 1;
-                    if (player->x > enemy_map2[1].x) if(s)new_x++;
-                    else if (player->x < enemy_map2[1].x)if(s) new_x--;
-                    if (player->y > enemy_map2[1].y) if(s)new_y++;
-                    else if (player->y < enemy_map2[1].y)if(s) new_y--;
-                    if(is_valid_enemy(new_y,new_x,map1)){
-                        if(flag==0){
-                            enemy_map2[1].exe=1;
-                            map1[y0][x0]='.';
-                            flag=1;
-                        }
-                        enemy_map2[1].perv=map1[enemy_map2[1].y][enemy_map2[1].x];
-                        clear_enemy(enemy_map2[1]);
-                        enemy_map2[1].x=new_x;
-                        enemy_map2[1].y=new_y;
-                        map1[new_y][new_x]=enemy_map2[1].face;
-                        attron(COLOR_PAIR(2));
-                        mvprintw(enemy_map2[1].y,enemy_map2[1].x,"%c",enemy_map2[1].face);
-                        attroff(COLOR_PAIR(2));
-                    }
-                }
-            }
-            if(enemy_map2[1].exe==0){
-                map2[enemy_map2[1].y][enemy_map2[1].x]='.';
-                clear_enemy(enemy_map2[1]);
-            }
-            if(get_room_id(player->x,player->y)==4&&enemy_map2[2].exe==1){
-                if(abs(player->x - enemy_map2[2].x) < enemy_map2[2].following_distance && abs(player->y - enemy_map2[2].y) < enemy_map2[2].following_distance){
-                    damage_player(&enemy_map2[2],player);
-                    new_x=enemy_map2[2].x;
-                    new_y=enemy_map2[2].y;
-                    int x0 =enemy_map2[2].x;
-                    int y0=enemy_map2[2].y;
-                    int static flag;
-                    flag=0;
-                    int s = 1;
-                    if (player->x > enemy_map2[2].x) if(s)new_x++;
-                    else if (player->x < enemy_map2[2].x)if(s) new_x--;
-                    if (player->y > enemy_map2[2].y) if(s)new_y++;
-                    else if (player->y < enemy_map2[2].y)if(s) new_y--;
-                    if(is_valid_enemy(new_y,new_x,map1)){
-                        if(flag==0){
-                            enemy_map2[2].exe=1;
-                            map1[y0][x0]='.';
-                            flag=1;
-                        }
-                        enemy_map2[2].perv=map1[enemy_map2[2].y][enemy_map2[2].x];
-                        clear_enemy(enemy_map2[2]);
-                        enemy_map2[2].x=new_x;
-                        enemy_map2[2].y=new_y;
-                        map1[new_y][new_x]=enemy_map2[2].face;
-                        attron(COLOR_PAIR(2));
-                        mvprintw(enemy_map2[2].y,enemy_map2[2].x,"%c",enemy_map2[2].face);
-                        attroff(COLOR_PAIR(2));
-                    }
-                }
-            }
-            if(enemy_map2[2].exe==0){
-                map2[enemy_map2[2].y][enemy_map2[2].x]='.';
-                clear_enemy(enemy_map2[2]);
-            }
-            if(get_room_id(player->x,player->y)==5&&enemy_map2[3].exe==1){
-                if(abs(player->x - enemy_map2[3].x) < enemy_map2[3].following_distance && abs(player->y - enemy_map2[3].y) < enemy_map2[3].following_distance){
-                    damage_player(&enemy_map2[3],player);
-                    new_x=enemy_map2[3].x;
-                    new_y=enemy_map2[3].y;
-                    int x0 =enemy_map2[3].x;
-                    int y0=enemy_map2[3].y;
-                    int static flag;
-                    flag=0;
-                    int s = 1;
-                    if (player->x > enemy_map2[3].x) if(s)new_x++;
-                    else if (player->x < enemy_map2[3].x)if(s) new_x--;
-                    if (player->y > enemy_map2[3].y) if(s)new_y++;
-                    else if (player->y < enemy_map2[3].y)if(s) new_y--;
-                    if(is_valid_enemy(new_y,new_x,map1)){
-                        if(flag==0){
-                            enemy_map2[3].exe=1;
-                            map2[y0][x0]='.';
-                            flag=1;
-                        }
-                        enemy_map2[3].perv=map1[enemy_map2[3].y][enemy_map2[3].x];
-                        clear_enemy(enemy_map2[3]);
-                        enemy_map2[3].x=new_x;
-                        enemy_map2[3].y=new_y;
-                        map1[new_y][new_x]=enemy_map2[3].face;
-                        attron(COLOR_PAIR(2));
-                        mvprintw(enemy_map2[3].y,enemy_map2[3].x,"%c",enemy_map2[3].face);
-                        attroff(COLOR_PAIR(2));
-                    }
-                }
-            }
-            if(enemy_map2[3].exe==0){
-                map2[enemy_map2[3].y][enemy_map2[3].x]='.';
-                clear_enemy(enemy_map2[3]);
-            }
-            if(get_room_id(player->x,player->y)==7&&enemy_map2[4].exe==1){
-                if(abs(player->x - enemy_map2[4].x) < enemy_map2[4].following_distance && abs(player->y - enemy_map2[4].y) < enemy_map2[4].following_distance){
-                    damage_player(&enemy_map2[4],player);
-                    new_x=enemy_map2[4].x;
-                    new_y=enemy_map2[4].y;
-                    int x0 =enemy_map2[4].x;
-                    int y0=enemy_map2[4].y;
-                    int static flag;
-                    flag=0;
-                    int s = 1;
-                    if (player->x > enemy_map2[4].x) if(s)new_x++;
-                    else if (player->x < enemy_map2[4].x)if(s) new_x--;
-                    if (player->y > enemy_map2[4].y) if(s)new_y++;
-                    else if (player->y < enemy_map2[4].y)if(s) new_y--;
-                    if(is_valid_enemy(new_y,new_x,map1)){
-                        if(flag==0){
-                            enemy_map2[4].exe=1;
-                            map1[y0][x0]='.';
-                            flag=1;
-                        }
-                        enemy_map2[4].perv=map1[enemy_map2[4].y][enemy_map2[4].x];
-                        clear_enemy(enemy_map2[4]);
-                        enemy_map2[4].x=new_x;
-                        enemy_map2[4].y=new_y;
-                        map1[new_y][new_x]=enemy_map2[4].face;
-                        attron(COLOR_PAIR(2));
-                        mvprintw(enemy_map2[4].y,enemy_map2[4].x,"%c",enemy_map2[4].face);
-                        attroff(COLOR_PAIR(2));
-                    }
-                }
-            }
-            if(enemy_map2[4].exe==0){
-                map2[enemy_map2[4].y][enemy_map2[4].x]='.';
-                clear_enemy(enemy_map2[4]);
-            }
-        }
-        else if(p_user.level_num==3){
-            if(get_room_id(player->x,player->y)==1&&enemy_map3[0].exe==1){
-                if(abs(player->x - enemy_map3[0].x) < enemy_map3[0].following_distance && abs(player->y - enemy_map3[0].y) < enemy_map3[0].following_distance){
-                    damage_player(&enemy_map3[0],player);
-                    new_x=enemy_map3[0].x;
-                    new_y=enemy_map3[0].y;
-                    int x0 =enemy_map3[0].x;
-                    int y0=enemy_map3[0].y;
-                    int static flag;
-                    flag=0;
-                    int s = 1;
-                    if (player->x > enemy_map3[0].x) if(s)new_x++;
-                    else if (player->x < enemy_map3[0].x)if(s) new_x--;
-                    if (player->y > enemy_map3[0].y) if(s)new_y++;
-                    else if (player->y < enemy_map3[0].y)if(s) new_y--;
-                    if(is_valid_enemy(new_y,new_x,map1)){
-                        if(flag==0){
-                            enemy_map3[0].exe=1;
-                            map1[y0][x0]='.';
-                            flag=1;
-                        }
-                        enemy_map3[0].perv=map1[enemy_map3[0].y][enemy_map3[0].x];
-                        clear_enemy(enemy_map3[0]);
-                        enemy_map3[0].x=new_x;
-                        enemy_map3[0].y=new_y;
-                        map1[new_y][new_x]=enemy_map3[0].face;
-                        attron(COLOR_PAIR(2));
-                        mvprintw(enemy_map3[0].y,enemy_map3[0].x,"%c",enemy_map3[0].face);
-                        attroff(COLOR_PAIR(2));
-                    }
-                }
-            }
-            else if(enemy_map3[0].exe==0){
-                map3[enemy_map3[0].y][enemy_map3[0].x]='.';
-                clear_enemy(enemy_map3[0]);
-            }
-            if(get_room_id(player->x,player->y)==5&&enemy_map3[1].exe==1){
-                if(abs(player->x - enemy_map3[1].x) < enemy_map3[1].following_distance && abs(player->y - enemy_map3[1].y) < enemy_map3[1].following_distance){
-                    damage_player(&enemy_map3[1],player);
-                    new_x=enemy_map3[1].x;
-                    new_y=enemy_map3[1].y;
-                    int x0 =enemy_map3[1].x;
-                    int y0=enemy_map3[1].y;
-                    int static flag;
-                    flag=0;
-                    int s = 1;
-                    if (player->x > enemy_map3[1].x) if(s)new_x++;
-                    else if (player->x < enemy_map3[1].x)if(s) new_x--;
-                    if (player->y > enemy_map3[1].y) if(s)new_y++;
-                    else if (player->y < enemy_map3[1].y)if(s) new_y--;
-                    if(is_valid_enemy(new_y,new_x,map1)){
-                        if(flag==0){
-                            enemy_map3[1].exe=1;
-                            map1[y0][x0]='.';
-                            flag=1;
-                        }
-                        enemy_map3[1].perv=map1[enemy_map3[1].y][enemy_map3[1].x];
-                        clear_enemy(enemy_map3[1]);
-                        enemy_map3[1].x=new_x;
-                        enemy_map3[1].y=new_y;
-                        map1[new_y][new_x]=enemy_map3[1].face;
-                        attron(COLOR_PAIR(2));
-                        mvprintw(enemy_map3[1].y,enemy_map3[1].x,"%c",enemy_map3[1].face);
-                        attroff(COLOR_PAIR(2));
-                    }
-                }
-            }
-            else if(enemy_map3[1].exe==0){
-                map3[enemy_map3[1].y][enemy_map3[1].x]='.';
-                clear_enemy(enemy_map3[1]);
-            }
-            if(get_room_id(player->x,player->y)==4&&enemy_map3[2].exe==1){
-                if(abs(player->x - enemy_map3[2].x) < enemy_map3[2].following_distance && abs(player->y - enemy_map3[2].y) < enemy_map3[2].following_distance){
-                    damage_player(&enemy_map3[2],player);
-                    new_x=enemy_map3[2].x;
-                    new_y=enemy_map3[2].y;
-                    int x0 =enemy_map3[2].x;
-                    int y0=enemy_map3[2].y;
-                    int static flag;
-                    flag=0;
-                    int s = 1;
-                    if (player->x > enemy_map3[2].x) if(s)new_x++;
-                    else if (player->x < enemy_map3[2].x)if(s) new_x--;
-                    if (player->y > enemy_map3[2].y) if(s)new_y++;
-                    else if (player->y < enemy_map3[2].y)if(s) new_y--;
-                    if(is_valid_enemy(new_y,new_x,map1)){
-                        if(flag==0){
-                            enemy_map3[2].exe=1;
-                            map1[y0][x0]='.';
-                            flag=1;
-                        }
-                        enemy_map3[2].perv=map1[enemy_map3[2].y][enemy_map3[2].x];
-                        clear_enemy(enemy_map3[2]);
-                        enemy_map3[2].x=new_x;
-                        enemy_map3[2].y=new_y;
-                        map1[new_y][new_x]=enemy_map3[2].face;
-                        attron(COLOR_PAIR(2));
-                        mvprintw(enemy_map3[2].y,enemy_map3[2].x,"%c",enemy_map3[2].face);
-                        attroff(COLOR_PAIR(2));
-                    }
-                }
-            }
-            else if(enemy_map3[2].exe==0){
-                map3[enemy_map3[2].y][enemy_map3[2].x]='.';
-                clear_enemy(enemy_map3[2]);
-            }
-            if(get_room_id(player->x,player->y)==6&&enemy_map3[3].exe==1){
-                if(abs(player->x - enemy_map3[3].x) < enemy_map3[3].following_distance && abs(player->y - enemy_map3[3].y) < enemy_map3[3].following_distance){
-                    damage_player(&enemy_map3[3],player);
-                    new_x=enemy_map3[3].x;
-                    new_y=enemy_map3[3].y;
-                    int x0 =enemy_map3[3].x;
-                    int y0=enemy_map3[3].y;
-                    int static flag;
-                    flag=0;
-                    int s = 1;
-                    if (player->x > enemy_map3[3].x) if(s)new_x++;
-                    else if (player->x < enemy_map3[3].x)if(s) new_x--;
-                    if (player->y > enemy_map3[3].y) if(s)new_y++;
-                    else if (player->y < enemy_map3[3].y)if(s) new_y--;
-                    if(is_valid_enemy(new_y,new_x,map1)){
-                        if(flag==0){
-                            enemy_map3[3].exe=1;
-                            map1[y0][x0]='.';
-                            flag=1;
-                        }
-                        enemy_map3[3].perv=map1[enemy_map3[3].y][enemy_map3[3].x];
-                        clear_enemy(enemy_map3[3]);
-                        enemy_map3[3].x=new_x;
-                        enemy_map3[3].y=new_y;
-                        map1[new_y][new_x]=enemy_map3[3].face;
-                        attron(COLOR_PAIR(2));
-                        mvprintw(enemy_map3[3].y,enemy_map3[3].x,"%c",enemy_map3[3].face);
-                        attroff(COLOR_PAIR(2));
-                    }
-                }
-            }
-            else if(enemy_map3[3].exe==0){
-                map3[enemy_map3[3].y][enemy_map3[3].x]='.';
-                clear_enemy(enemy_map3[3]);
-            }
-        }
-        else if(p_user.level_num==4){
-            if(get_room_id(player->x,player->y)==8&&enemy_map4[0].exe==1){
-                if(abs(player->x - enemy_map4[0].x) < enemy_map4[0].following_distance && abs(player->y - enemy_map4[0].y) < enemy_map4[0].following_distance){
-                    damage_player(&enemy_map4[0],player);
-                    new_x=enemy_map4[0].x;
-                    new_y=enemy_map4[0].y;
-                    int x0 =enemy_map4[0].x;
-                    int y0=enemy_map4[0].y;
-                    int static flag;
-                    flag=0;
-                    int s = 1;
-                    if (player->x > enemy_map4[0].x) if(s)new_x++;
-                    else if (player->x < enemy_map4[0].x)if(s) new_x--;
-                    if (player->y > enemy_map4[0].y) if(s)new_y++;
-                    else if (player->y < enemy_map4[0].y)if(s) new_y--;
-                    if(is_valid_enemy(new_y,new_x,map1)){
-                        if(flag==0){
-                            enemy_map4[0].exe=1;
-                            map1[y0][x0]='.';
-                            flag=1;
-                        }
-                        enemy_map4[0].perv=map1[enemy_map4[0].y][enemy_map4[0].x];
-                        clear_enemy(enemy_map4[0]);
-                        enemy_map4[0].x=new_x;
-                        enemy_map4[0].y=new_y;
-                        map1[new_y][new_x]=enemy_map4[0].face;
-                        attron(COLOR_PAIR(2));
-                        mvprintw(enemy_map4[0].y,enemy_map4[0].x,"%c",enemy_map4[0].face);
-                        attroff(COLOR_PAIR(2));
-                    }
-                }
-            }
-            else if(enemy_map4[0].exe==0){
-                map4[enemy_map4[0].y][enemy_map4[0].x]='.';
-                clear_enemy(enemy_map4[0]);
-            }
-            if(get_room_id(player->x,player->y)==7&&enemy_map4[1].exe==1){
-                if(abs(player->x - enemy_map4[1].x) < enemy_map4[1].following_distance && abs(player->y - enemy_map4[1].y) < enemy_map4[1].following_distance){
-                    damage_player(&enemy_map4[1],player);
-                    new_x=enemy_map4[1].x;
-                    new_y=enemy_map4[1].y;
-                    int x0 =enemy_map4[1].x;
-                    int y0=enemy_map4[1].y;
-                    int static flag;
-                    flag=0;
-                    int s = 1;
-                    if (player->x > enemy_map4[1].x) if(s)new_x++;
-                    else if (player->x < enemy_map4[1].x)if(s) new_x--;
-                    if (player->y > enemy_map4[1].y) if(s)new_y++;
-                    else if (player->y < enemy_map4[1].y)if(s) new_y--;
-                    if(is_valid_enemy(new_y,new_x,map1)){
-                        if(flag==0){
-                            enemy_map4[1].exe=1;
-                            map1[y0][x0]='.';
-                            flag=1;
-                        }
-                        enemy_map4[1].perv=map1[enemy_map4[1].y][enemy_map4[1].x];
-                        clear_enemy(enemy_map4[1]);
-                        enemy_map4[1].x=new_x;
-                        enemy_map4[1].y=new_y;
-                        map1[new_y][new_x]=enemy_map4[1].face;
-                        attron(COLOR_PAIR(2));
-                        mvprintw(enemy_map4[1].y,enemy_map4[1].x,"%c",enemy_map4[1].face);
-                        attroff(COLOR_PAIR(2));
-                    }
-                }
-            }
-            else if(enemy_map4[1].exe==0){
-                map4[enemy_map4[1].y][enemy_map4[1].x]='.';
-                clear_enemy(enemy_map4[1]);
-            }
-            if(get_room_id(player->x,player->y)==5&&enemy_map4[2].exe==1){
-                if(abs(player->x - enemy_map4[2].x) < enemy_map4[2].following_distance && abs(player->y - enemy_map4[2].y) < enemy_map4[2].following_distance){
-                    damage_player(&enemy_map4[2],player);
-                    new_x=enemy_map4[2].x;
-                    new_y=enemy_map4[2].y;
-                    int x0 =enemy_map4[2].x;
-                    int y0=enemy_map4[2].y;
-                    int static flag;
-                    flag=0;
-                    int s = 1;
-                    if (player->x > enemy_map4[2].x) if(s)new_x++;
-                    else if (player->x < enemy_map4[2].x)if(s) new_x--;
-                    if (player->y > enemy_map4[2].y) if(s)new_y++;
-                    else if (player->y < enemy_map4[2].y)if(s) new_y--;
-                    if(is_valid_enemy(new_y,new_x,map1)){
-                        if(flag==0){
-                            enemy_map4[2].exe=1;
-                            map1[y0][x0]='.';
-                            flag=1;
-                        }
-                        enemy_map4[2].perv=map1[enemy_map4[2].y][enemy_map4[2].x];
-                        clear_enemy(enemy_map4[2]);
-                        enemy_map4[2].x=new_x;
-                        enemy_map4[2].y=new_y;
-                        map1[new_y][new_x]=enemy_map4[2].face;
-                        attron(COLOR_PAIR(2));
-                        mvprintw(enemy_map4[2].y,enemy_map4[2].x,"%c",enemy_map4[2].face);
-                        attroff(COLOR_PAIR(2));
-                    }
-                }
-            }
-            else if(enemy_map4[2].exe==0){
-                map4[enemy_map4[2].y][enemy_map4[2].x]='.';
-                clear_enemy(enemy_map4[2]);
-            }
-            if(get_room_id(player->x,player->y)==4&&enemy_map4[3].exe==1){
-                if(abs(player->x - enemy_map4[3].x) < enemy_map4[3].following_distance && abs(player->y - enemy_map4[3].y) < enemy_map4[3].following_distance){
-                    damage_player(&enemy_map4[3],player);
-                    new_x=enemy_map4[3].x;
-                    new_y=enemy_map4[3].y;
-                    int x0 =enemy_map4[3].x;
-                    int y0=enemy_map4[3].y;
-                    int static flag;
-                    flag=0;
-                    int s = 1;
-                    if (player->x > enemy_map4[3].x) if(s)new_x++;
-                    else if (player->x < enemy_map4[3].x)if(s) new_x--;
-                    if (player->y > enemy_map4[3].y) if(s)new_y++;
-                    else if (player->y < enemy_map4[3].y)if(s) new_y--;
-                    if(is_valid_enemy(new_y,new_x,map1)){
-                        if(flag==0){
-                            enemy_map4[3].exe=1;
-                            map1[y0][x0]='.';
-                            flag=1;
-                        }
-                        enemy_map4[3].perv=map1[enemy_map4[3].y][enemy_map4[3].x];
-                        clear_enemy(enemy_map4[3]);
-                        enemy_map4[3].x=new_x;
-                        enemy_map4[3].y=new_y;
-                        map1[new_y][new_x]=enemy_map4[3].face;
-                        attron(COLOR_PAIR(2));
-                        mvprintw(enemy_map4[3].y,enemy_map4[3].x,"%c",enemy_map4[3].face);
-                        attroff(COLOR_PAIR(2));
-                    }
-                }
-            }
-            else if(enemy_map4[3].exe==0){
-                map4[enemy_map4[3].y][enemy_map4[3].x]='.';
-                clear_enemy(enemy_map4[3]);
-            }
-            if(get_room_id(player->x,player->y)==2&&enemy_map4[4].exe==1){
-                if(abs(player->x - enemy_map4[4].x) < enemy_map4[4].following_distance && abs(player->y - enemy_map4[4].y) < enemy_map4[4].following_distance){
-                    damage_player(&enemy_map4[4],player);
-                    new_x=enemy_map4[4].x;
-                    new_y=enemy_map4[4].y;
-                    int x0 =enemy_map4[4].x;
-                    int y0=enemy_map4[4].y;
-                    int static flag;
-                    flag=0;
-                    int s = 1;
-                    if (player->x > enemy_map4[4].x) if(s)new_x++;
-                    else if (player->x < enemy_map4[4].x)if(s) new_x--;
-                    if (player->y > enemy_map4[4].y) if(s)new_y++;
-                    else if (player->y < enemy_map4[4].y)if(s) new_y--;
-                    if(is_valid_enemy(new_y,new_x,map1)){
-                        if(flag==0){
-                            enemy_map4[4].exe=1;
-                            map1[y0][x0]='.';
-                            flag=1;
-                        }
-                        enemy_map4[4].perv=map1[enemy_map4[4].y][enemy_map4[4].x];
-                        clear_enemy(enemy_map4[4]);
-                        enemy_map4[4].x=new_x;
-                        enemy_map4[4].y=new_y;
-                        map1[new_y][new_x]=enemy_map4[4].face;
-                        attron(COLOR_PAIR(2));
-                        mvprintw(enemy_map4[4].y,enemy_map4[4].x,"%c",enemy_map4[4].face);
-                        attroff(COLOR_PAIR(2));
-                    }
-                }
-            }
-            else if(enemy_map4[4].exe==0){
-                map4[enemy_map4[4].y][enemy_map4[4].x]='.';
-                clear_enemy(enemy_map4[4]);
-            }
-        }
-    }
-    gmsign1=1;
 }
 void clear_enemy(Enemy enemy){
     if(gmsign2==0){
@@ -6399,6 +5686,9 @@ void clear_player2(Player *player) {
         } 
     }
 void move_player(Player *player) {
+        if(p_user.weapon_bar.arrow<=0 && p_user.weapon_bar.dagger<=0 && p_user.weapon_bar.sword<=0 && p_user.weapon_bar.magic_wand<=0){
+            p_user.current_weapon='m';
+        }
         if(p_user.hunger>=100){
             p_user.hunger=100;
             p_user.health=10000;
@@ -6409,6 +5699,8 @@ void move_player(Player *player) {
             x+=enemies[i].exe;
         }
         p_user.kills2=12-x;
+
+        p_user.kills1=p_user.kills2+killna;
         if(p_user.kills2>=12){
             final_result(1);
         }
@@ -6426,14 +5718,6 @@ void move_player(Player *player) {
             }
             else if(Hspellc>10){
                 Hspell=0;
-            }
-            if(Sspell==1&&Sspellc<=10){
-                pace = 2;
-                Sspellc++;
-            }
-            else if(Sspellc>10){
-                pace = 1;
-                Sspell=0;
             }
             pace_counter1++;
             if(p_user.difficulty==0){
@@ -6470,7 +5754,7 @@ void move_player(Player *player) {
             pace_counter2++;
 
         }
-        if(pace_counter1>=5 && Sspellc>=10){
+        if(pace_counter1>=5){
             pace = 1;
         }
         switch (ch) {
@@ -6489,12 +5773,7 @@ void move_player(Player *player) {
         case 'm':
             show_count++;
             if(show_count>=4){
-                clear();
-                attron(COLOR_PAIR(2));
-                mvprintw(22,82,"YOU LOST");
-                getch();
-                endwin();
-                exit(0);
+                break;
             }
             show_full_map_temporarily(player);
             break;
@@ -6535,27 +5814,27 @@ int enemy_checker(Player *player, Enemy *enemy) {
             switch (enemy->type) {
                 case DEAMON:
                     p_user.health -= enemy->damage;
-                    mvprintw(1,1,"Deamon attacked you! Health: %d\n", p_user.health);
                     break;
                 case FIRE:
                     p_user.health -= enemy->damage;
-                    mvprintw(1,1,"Fire attacked you! Health: %d\n", p_user.health);
                     break;
                 case GIANT:
                     p_user.health -= enemy->damage;
-                    mvprintw(1,1,"Giant attacked you! Health: %d\n", p_user.health);
                     break;
                 case SNAKE:
                     p_user.health -= enemy->damage;
-                    mvprintw(1,1,"Snake attacked you! Health: %d\n", p_user.health);
                     break;
                 case UNDEAD:
                     p_user.health -= enemy->damage;
-                    mvprintw(1,1,"Undead attacked you! Health: %d\n", p_user.health);
                     break;
             }
+            attron(COLOR_PAIR(2));
+            mvprintw(38,80,"DAMAGE!!!");
+            getch();
+            mvprintw(38,80,"         ");
+            attroff(COLOR_PAIR(2));
         } 
-        else if(enemy->exe==1){
+        else if(enemy->exe==1&&wandon==0){
             int x =enemy->x;
             int y =enemy->y;
             if (player->x > enemy->x) x++;
@@ -6636,9 +5915,12 @@ void refresh_map2(Player *player) {
 }
 int start_battle(){
     clear();
+    show_count = 0;
+    pace_counter2=0;
     Player player;
     player.x = 70;
     player.y = 25;
+    killna = p_user.kills1;
     create_battle_room();
     refresh_map2(&player);  
     while (1) {
@@ -6671,10 +5953,10 @@ void draw_battle_room(){
 }
 int damage_enemy2(char weapon,Player *player){
     attron(COLOR_PAIR(3));
-    mvprintw(1,COLS/2-10,"ENTER DIRECTION");
+    mvprintw(1,80,"ENTER DIRECTION");
     attroff(COLOR_PAIR(3));
     int direction = getch();
-    mvprintw(1,COLS/2-10,"               ");
+    mvprintw(1,80,"               ");
     int aim;
     switch (direction)
     {
@@ -6708,6 +5990,7 @@ int damage_enemy2(char weapon,Player *player){
             mvprintw(1,2,"                    ");
             return 1;
         }
+        wandon=0;
         damage=12;
         damage_distance=5;
         p_user.weapon_bar.dagger--;
@@ -6716,9 +5999,11 @@ int damage_enemy2(char weapon,Player *player){
         if(p_user.weapon_bar.magic_wand<=0){
             mvprintw(1,2,"NOT ENOUGH MAGIC WAND!!!");
             getch();
-            mvprintw(1,2,"                    ");
+            mvprintw(1,2,"                       ");
+            wandon=0;
             return 1;
         }
+        wandon=1;
         damage=15;
         damage_distance=10;
         p_user.weapon_bar.magic_wand--;
@@ -6730,6 +6015,7 @@ int damage_enemy2(char weapon,Player *player){
             mvprintw(1,2,"                    ");
             return 1;
         }
+        wandon=0;
         damage=5;
         damage_distance=5;
         p_user.weapon_bar.arrow--;
@@ -6741,6 +6027,7 @@ int damage_enemy2(char weapon,Player *player){
             mvprintw(1,2,"                    ");
             return 1;
         }
+        wandon=0;
         damage_distance=1;
         damage=10;
         break;
@@ -6760,16 +6047,13 @@ int damage_enemy2(char weapon,Player *player){
                     mvprintw(2,COLS/2-17,"DAMAGE TO ENEMY,KEEP GOING!");
                     attroff(COLOR_PAIR(3));
                     getch();
-                    mvprintw(2,COLS/2-10,"                           ");
+                    mvprintw(2,COLS/2-17,"                           ");
                     if(enemies[i].health<=0&&enemies[i].exe==1){
                         battle_room[enemies[i].y][enemies[i].x]='.';
                         enemies[i].exe=0;
                         attron(COLOR_PAIR(3));
                         mvprintw(2,COLS/2-10,"ELIMINATED!!!");
                         attroff(COLOR_PAIR(3));
-                        refresh();
-                        napms(1000);
-                        mvprintw(2,COLS/2-10,"             ");
                     }
         }
     }
@@ -7088,9 +6372,9 @@ int telesm(Player *player){
         }
         else{
             cp=0;
-            return 0;
-            night=0;
             mvprintw(3,74,"                            ");
+            night=0;
+            return 0;
         }
     }
     else if(p_user.level_num==3){
@@ -7108,9 +6392,9 @@ int telesm(Player *player){
         }
         else{
             cp=0;
-            return 0;
             night=0;
             mvprintw(3,74,"                            ");
+            return 0;
         }
 
     }
@@ -7130,8 +6414,8 @@ int telesm(Player *player){
         else{
             cp=0;
             night=0;
-            return 0;
             mvprintw(3,74,"                            ");
+            return 0;
         }
     }
     attroff(COLOR_PAIR(6));
@@ -7464,14 +6748,8 @@ bool init_sdl() {
 void play_music(const char* file_path) {
     Mix_Music *music = Mix_LoadMUS(file_path);
     strcpy(current_music,file_path);
-    if (!music) {
-        printf("Failed to load music! SDL_mixer Error: %s\n", Mix_GetError());
-        return;
-    }
+    Mix_PlayMusic(music, -1);
 
-    if (Mix_PlayMusic(music, -1) == -1) {
-        printf("Failed to play music! SDL_mixer Error: %s\n", Mix_GetError());
-    }
 }
 void stop_music(){
     Mix_HaltMusic();
