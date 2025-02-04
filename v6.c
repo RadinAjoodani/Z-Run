@@ -123,6 +123,8 @@ int Sspellc=0;
 int Gspellc=0;
 int play;
 int cp=0;
+char main_music[300];
+char current_music[300];
 void main_menu();
 void log_in();
 void sign_up();
@@ -730,6 +732,7 @@ void play_as_guest(){
         mvprintw(rows - 1, cols - 1, "+");
         attroff(COLOR_PAIR(6));
     play=0;
+    cp=0;
     p_user.level_num=1;
     p_user.gold = 0;
     p_user.score=0;
@@ -1178,6 +1181,7 @@ void start_level2(){
         mvprintw(rows - 1, cols - 1, "+");
         attroff(COLOR_PAIR(3));
     show_count = 0;
+    cp=0;
     p_user.level_num=2;
     pace_counter2=0;
     memset(memory_map2,0,sizeof(memory_map2));
@@ -1206,6 +1210,7 @@ void start_level3(){
         mvprintw(rows - 1, 0, "+");
         mvprintw(rows - 1, cols - 1, "+");
         attroff(COLOR_PAIR(10));
+        cp=0;
     show_count = 0;
     p_user.level_num=3;
     pace_counter2=0;
@@ -1235,6 +1240,7 @@ void start_level4(){
         mvprintw(rows - 1, 0, "+");
         mvprintw(rows - 1, cols - 1, "+");
         attroff(COLOR_PAIR(2));
+        cp=0;
     show_count = 0;
     pace_counter2=0;
     p_user.level_num=4;
@@ -3429,12 +3435,19 @@ int handle_input(Player *player) {
     night=0;
     int t = telesm(player);
     attroff(COLOR_PAIR(6));
-    if(t==1&&!is_music_playing()){
+    if(strcmp(current_music,main_music)!=0 && t==0){
+        strcpy(current_music,main_music);
+        play_music(main_music);
+    }
+    if(t==1&&is_music_playing&&cp==0){
+        cp=1;
+        stop_music();
         play_music("peritune-spook4(chosic.com).mp3");
+        strcpy(current_music,"peritune-spook4(chosic.com).mp3");
     }
-    else if (t==0 && is_music_playing()) {
-            stop_music();
-    }
+    // else if (t==0 && is_music_playing()) {
+    //         stop_music();
+    // }
     int x=0;
     for(int i=0 ; i<6 ;i++){
         x+=enemies_map1[i].exe;
@@ -6783,7 +6796,9 @@ void music(){
         return;
     }
     char fullPath[256];
-    snprintf(fullPath, sizeof(fullPath), "%s%s", musicFolder, musicFiles[choice - 1]);  
+    snprintf(fullPath, sizeof(fullPath), "%s%s", musicFolder, musicFiles[choice - 1]); 
+    strcpy(main_music ,fullPath);
+    strcpy(current_music ,fullPath);
     if (SDL_Init(SDL_INIT_AUDIO) < 0) {
         printw("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         refresh();
@@ -7046,28 +7061,33 @@ User* find_user(User users[], int num_users, const char *username) {
 int telesm(Player *player){
     attron(COLOR_PAIR(6));
     if(p_user.level_num==1){
-        if(get_room_id(player->x,player->y)==5){
+        if(get_room_id(player->x,player->y)==2){
             mvprintw(3,74,"YOU ARE IN ENCHANTED ROOM :o");
+            strcpy(current_music,"peritune-spook4(chosic.com).mp3");
             p_user.health-=10;
             return 1;
         }
         else{
             mvprintw(3,74,"                            ");
+            cp=0;
             return 0;
         }
     }
     else if(p_user.level_num==2){
         if(get_room_id(player->x,player->y)==5||get_room_id(player->x,player->y)==1){
             mvprintw(3,74,"YOU ARE IN ENCHANTED ROOM :o");
+            strcpy(current_music,"peritune-spook4(chosic.com).mp3");
             p_user.health-=10;
             return 1;
         }
         else if(get_room_id(player->x,player->y)==3){
             mvprintw(3,74,"YOU ARE IN NIGHTMARE ROOM :o");
+            strcpy(current_music,"peritune-spook4(chosic.com).mp3");
             night=1;
             return 1;
         }
         else{
+            cp=0;
             return 0;
             night=0;
             mvprintw(3,74,"                            ");
@@ -7076,15 +7096,18 @@ int telesm(Player *player){
     else if(p_user.level_num==3){
         if(get_room_id(player->x,player->y)==6){
             mvprintw(3,74,"YOU ARE IN ENCHANTED ROOM :o");
+            strcpy(current_music,"peritune-spook4(chosic.com).mp3");
             p_user.health-=10;
             return 1;
         }
         else if(get_room_id(player->x,player->y)==2||get_room_id(player->x,player->y)==5){
             mvprintw(3,74,"YOU ARE IN NIGHTMARE ROOM :o");
+            strcpy(current_music,"peritune-spook4(chosic.com).mp3");
             night=1;
             return 1;
         }
         else{
+            cp=0;
             return 0;
             night=0;
             mvprintw(3,74,"                            ");
@@ -7094,15 +7117,18 @@ int telesm(Player *player){
     else if(p_user.level_num==4){
         if(get_room_id(player->x,player->y)==3||get_room_id(player->x,player->y)==6||get_room_id(player->x,player->y)==8){
             mvprintw(3,74,"YOU ARE IN ENCHANTED ROOM :o");
+            strcpy(current_music,"peritune-spook4(chosic.com).mp3");
             p_user.health-=10;
             return 1;
         }
         else if(get_room_id(player->x,player->y)==7){
             mvprintw(3,74,"YOU ARE IN NIGHTMARE ROOM :o");
+            strcpy(current_music,"peritune-spook4(chosic.com).mp3");
             night=1;
             return 1;
         }
         else{
+            cp=0;
             night=0;
             return 0;
             mvprintw(3,74,"                            ");
@@ -7437,6 +7463,7 @@ bool init_sdl() {
 }
 void play_music(const char* file_path) {
     Mix_Music *music = Mix_LoadMUS(file_path);
+    strcpy(current_music,file_path);
     if (!music) {
         printf("Failed to load music! SDL_mixer Error: %s\n", Mix_GetError());
         return;
