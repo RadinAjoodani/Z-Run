@@ -3574,7 +3574,7 @@ int handle_input(Player *player) {
     else if(t==0&&strcmp(current_music,"peritune-spook4(chosic.com).mp3")==0){
         stop_music();
     }
-    enemy_checker2(player);
+    
     if(p_user.health<=0){
         clear();
         final_result(0);
@@ -3586,6 +3586,7 @@ int handle_input(Player *player) {
     if(p_user.level_num==1){
         int ch = getch();
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
+            enemy_checker2(player);
             if(Gspell==1&&Gspellc<=10){
                 Gspellc++;
             }
@@ -3752,6 +3753,7 @@ int handle_input(Player *player) {
     else if(p_user.level_num==2){
         int ch = getch();
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
+            enemy_checker2(player);
             if(Gspell==1&&Gspellc<=10){
                 Gspellc++;
             }
@@ -3925,6 +3927,7 @@ int handle_input(Player *player) {
     else if(p_user.level_num==3){
         int ch = getch();
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
+            enemy_checker2(player);
             if(Gspell==1&&Gspellc<=10){
                 Gspellc++;
             }
@@ -4098,6 +4101,7 @@ int handle_input(Player *player) {
     else if(p_user.level_num==4){
         int ch = getch();
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
+            enemy_checker2(player);
             if(Gspell==1&&Gspellc<=10){
                 Gspellc++;
             }
@@ -5850,7 +5854,11 @@ int move_player(Player *player) {
             }
             int new_x = player->x, new_y = player->y;
             if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
-                
+                for (int i = 0; i < 12; i++) {
+                    if (enemies[i].exe==1) {
+                        enemy_checker(player, &enemies[i]);
+                    }
+                }
                 if(Gspell==1&&Gspellc<=10){
                     Gspellc++;
                 }
@@ -5929,11 +5937,7 @@ int move_player(Player *player) {
                     damage_enemy2(p_user.current_weapon,player);                
                     break;
             }
-            for (int i = 0; i < 12; i++) {
-                if (enemies[i].exe==1) {
-                    enemy_checker(player, &enemies[i]);
-                }
-            }
+            
             wandon=0;
             
             if (p_user.health <= 0) {
@@ -5957,6 +5961,11 @@ int move_player(Player *player) {
             int ch = getch();
             int new_x = player->x, new_y = player->y;
             if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
+                for (int i = 0; i < 3; i++) {
+                if (enemies_war[i].exe==1) {
+                    enemy_checker(player, &enemies_war[i]);
+                }
+            }
                 
                 if(Gspell==1&&Gspellc<=10){
                     Gspellc++;
@@ -6030,12 +6039,6 @@ int move_player(Player *player) {
             break;
             }
             wandon=0;
-            for (int i = 0; i < 3; i++) {
-                if (enemies_war[i].exe==1) {
-                    enemy_checker(player, &enemies_war[i]);
-                }
-            }
-
             
             if (p_user.health <= 0) {
                 final_result(0);
