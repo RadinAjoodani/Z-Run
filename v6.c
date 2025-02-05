@@ -6485,11 +6485,7 @@ void final_result(int x){
     int width = 50;
     int start_y = (LINES - height) / 2;
     int start_x = (COLS - width) / 2;
-    if(is_logged_in==0){
-        show_table();
-        main_menu();
-    }
-    else{
+    
         attron(COLOR_PAIR(7));
         for (int y = start_y; y < start_y + height; y++) {
             for (int x = start_x; x < start_x + width; x++) {
@@ -6519,7 +6515,17 @@ void final_result(int x){
             attron(COLOR_PAIR(8));
             mvprintw(start_y + height - 2, start_x + (width - 20) / 2-5, "Opportunities don't happen, you create them");
             attroff(COLOR_PAIR(8));
-            save_info();
+            if(is_logged_in==0){
+                refresh();
+                napms(10000);
+                getch();
+                show_table();
+                main_menu();
+            }
+            else{
+                save_info();
+            }
+            
         }
         else{
             attron(COLOR_PAIR(2));
@@ -6540,16 +6546,22 @@ void final_result(int x){
             attron(COLOR_PAIR(8));
             mvprintw(start_y + height - 2, start_x + (width - 20) / 2 -5, "Failure Shouldn't Define You, But It Can Help Shape You");
             attroff(COLOR_PAIR(8));
-            save_info();
+            if(is_logged_in==0){
+                refresh();
+                napms(10000);
+                getch();
+                show_table();
+                main_menu();
+            }
+            else{
+                save_info();
+            }
         }
         refresh();
         napms(10000);
-        
         getch();
         show_table();
-        main_menu();
-    }
-    
+        main_menu();    
 }
 void draw_robot_art(int start_y, int start_x) {
     attron(COLOR_PAIR(7));
