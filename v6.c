@@ -1522,9 +1522,9 @@ int create_map1() {
     
 
     map1[5][23] = '+';
-    map1[7][5] = 'A';
-    map1[5][15] = 'J';
-    map1[8][9] = '<';
+    //map1[7][5] = 'A';
+    map1[5][15] = 'o';
+    //map1[8][9] = '<';
 
     //  room ۲
     for (int i = 8; i < 20; i++) {
@@ -1961,7 +1961,7 @@ int create_map2() {
     //map2[7][18] = '+';
     map2[10][12] = 'o';
     map2[8][16] = 'o';
-    map2[9][17] = '<';
+    //map2[9][17] = '<';
 
     //  room ۲
     for (int i = 5; i < 14; i++) {
@@ -2892,7 +2892,7 @@ int create_map3() {
     }
     map3[22][26] = '+';
     map3[30][20] = 'o';
-    map3[30][20] = '<';
+    //map3[30][20] = '<';
     int s6 = rand() % 3 + 1;
     for (int i = 0 ; i < s6 ;i++){
         int x = rand() % 12 + 22;
@@ -4433,7 +4433,7 @@ void refresh_map(Player *player,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[M
     attron(COLOR_PAIR(9));
         mvprintw(LINES-5,20,"Normal food : %d",p_user.food_bar.normal);
         mvprintw(LINES-4,20,"Speedy food : %d",p_user.food_bar.speed);
-        mvprintw(LINES-3,20,"Power  food : %d",p_user.food_bar.special);
+        mvprintw(LINES-3,20,"Supreme food : %d",p_user.food_bar.special);
     attroff(COLOR_PAIR(9));
     refresh();  
 }
@@ -5060,7 +5060,7 @@ void food_table(){
       
     mvprintw(start_y + 2, start_x + 2, "      Speedy  food : %d (press (R) to consume speedy)", p_user.food_bar.speed);
     mvprintw(start_y + 3, start_x + 2, "      Normal  food : %d (press (N) to consume normal food)", p_user.food_bar.normal);
-    mvprintw(start_y + 4, start_x + 2, "      Special food : %d (press (S) to consume special)", p_user.food_bar.special);
+    mvprintw(start_y + 4, start_x + 2, "      Supreme food : %d (press (S) to consume Supreme)", p_user.food_bar.special);
     mvprintw(start_y + 6, start_x + 2, "                  Press any key to quit");
 
       
@@ -6205,7 +6205,7 @@ void refresh_map2(Player *player) {
     attron(COLOR_PAIR(9));
         mvprintw(LINES-5,20,"Normal food : %d",p_user.food_bar.normal);
         mvprintw(LINES-4,20,"Speedy food : %d",p_user.food_bar.speed);
-        mvprintw(LINES-3,20,"Power  food : %d",p_user.food_bar.special);
+        mvprintw(LINES-3,20,"Supreme  food : %d",p_user.food_bar.special);
     attroff(COLOR_PAIR(9));
     attron(COLOR_PAIR(11));
     //attron(A_REVERSE);
@@ -6517,7 +6517,7 @@ void final_result(int x){
             mvprintw(start_y + height - 3, start_x + 5, "----------------------------------------");
             attroff(COLOR_PAIR(7));
             attron(COLOR_PAIR(8));
-            mvprintw(start_y + height - 2, start_x + (width - 20) / 2-5, "Press any key to exit...");
+            mvprintw(start_y + height - 2, start_x + (width - 20) / 2-5, "Opportunities don't happen, you create them");
             attroff(COLOR_PAIR(8));
             save_info();
         }
@@ -6538,7 +6538,7 @@ void final_result(int x){
             mvprintw(start_y + height - 3, start_x + 5, "----------------------------------------");
             attroff(COLOR_PAIR(7));
             attron(COLOR_PAIR(8));
-            mvprintw(start_y + height - 2, start_x + (width - 20) / 2 -5, "Press any key to exit...");
+            mvprintw(start_y + height - 2, start_x + (width - 20) / 2 -5, "Failure Shouldn't Define You, But It Can Help Shape You");
             attroff(COLOR_PAIR(8));
             save_info();
         }
@@ -7167,7 +7167,7 @@ void refresh3(Player *player){
     attron(COLOR_PAIR(9));
         mvprintw(LINES-5,20,"Normal food : %d",p_user.food_bar.normal);
         mvprintw(LINES-4,20,"Speedy food : %d",p_user.food_bar.speed);
-        mvprintw(LINES-3,20,"Power  food : %d",p_user.food_bar.special);
+        mvprintw(LINES-3,20,"Supreme  food : %d",p_user.food_bar.special);
     attroff(COLOR_PAIR(9));
     refresh();  
 }
