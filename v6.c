@@ -213,6 +213,7 @@ int create_war_house();
 void draw_war_house();
 void start_war();
 void refresh3(Player *player);
+void guide();
 
 int main(){
     setlocale(LC_ALL, "en_US.UTF-8");   
@@ -461,6 +462,8 @@ void sign_up(){
     s_user.score = 0;
     s_user.difficulty = 0;
     s_user.color = 0;
+    s_user.level_num = 1;
+    s_user.kills1 = 0;
 
     if (sign == 3) {
         save_user();
@@ -497,12 +500,13 @@ void log_in(){
         
         while (1) {
             clear();
+            curs_set(1);
             attron(COLOR_PAIR(3));
             mvprintw(LINES / 2 - 8, COLS / 2 - 30, "+========================================+");
             mvprintw(LINES / 2 - 7, COLS / 2 - 30, "|              LOG IN MENU               |");
             mvprintw(LINES / 2 - 6, COLS / 2 - 30, "+========================================+");
             attroff(COLOR_PAIR(3));
-            mvprintw(LINES / 2 - 4, COLS / 2 - 30 + 7, "Enter your username: ");
+            mvprintw(LINES / 2 - 4, COLS / 2 - 30 , "Enter your username: ");
             clrtoeol();
             echo();
             getstr(l_user.username);
@@ -512,6 +516,7 @@ void log_in(){
                 mvprintw(LINES / 2, COLS / 2 - 20, "Error: Unable to open users file.");
                 attroff(COLOR_PAIR(2));
                 getch();
+                curs_set(0);
                 return;
             }
             int valid = 0;
@@ -531,7 +536,7 @@ void log_in(){
                 }
             }
             noecho();
-            mvprintw(LINES / 2 - 2, COLS / 2 - 30 + 7, "Enter your password: (if forgotten Enter forget)");
+            mvprintw(LINES / 2 - 2, COLS / 2 - 30, "Enter your password: (if forgotten Enter forget)");
             getch();
             clrtoeol();
             echo();
@@ -539,18 +544,18 @@ void log_in(){
             getstr(temp_pass);
             noecho();
             if(strcmp(temp_pass,"forgot")==0){
-                mvprintw(LINES / 2-1, COLS / 2 - 30 + 7,"Enter your email :");
+                mvprintw(LINES / 2-1, COLS / 2 - 30,"Enter your email :");
                 char temp_email[200];
                 echo();
                 getstr(temp_email);
                 if(strcmp(temp_email,l_user.email)==0){
-                    mvprintw(LINES / 2, COLS / 2 - 30 + 7,"Your password is : %s",l_user.password);
+                    mvprintw(LINES / 2, COLS / 2 - 30,"Your password is : %s",l_user.password);
                     getch();
                     continue;
 
                 }
                 else{
-                    mvprintw(LINES / 2, COLS / 2 - 30 + 7,"Wrong email please try again later!");
+                    mvprintw(LINES / 2, COLS / 2 - 30,"Wrong email please try again later!");
                     getch();
                     continue;
                 }
@@ -563,10 +568,12 @@ void log_in(){
 
             if (valid) {
                 attron(COLOR_PAIR(4)); 
-                mvprintw(LINES / 2, COLS / 2 - 30 + 7, "Login successful! Press any key to return to the main menu.");
+                mvprintw(LINES / 2, COLS / 2 - 30, "Login successful! Press any key to return to the main menu.");
                 attroff(COLOR_PAIR(4));
+                strcpy(p_user.username,l_user.username);
                 is_logged_in = 1;
                 getch();
+                curs_set(0);
                 return;
             } else {
                 attron(COLOR_PAIR(2)); 
@@ -576,6 +583,7 @@ void log_in(){
 
                 ch = getch();
                 if (ch != 'r' && ch != 'R') {
+                    curs_set(0);
                     return;
                 }
             }
@@ -731,6 +739,7 @@ void play_game(){
     }
 }
 void play_as_guest(){
+    guide();
     clear();
     int rows,cols;
     getmaxyx(stdscr, rows, cols);
@@ -1128,6 +1137,7 @@ void change_character_color(int *current_color) {
     }
 }
 void start_new_game(){
+    guide();
     clear();
     int rows,cols;
     getmaxyx(stdscr, rows, cols);
@@ -1276,16 +1286,39 @@ void start_level4(){
     }
 }
 void continue_last_game(){
+    p_user.gold = 0;
+    p_user.score=0;
+    p_user.health=10000;
+    p_user.power=100;
+    p_user.food_bar.normal=0;
+    p_user.food_bar.special=0;
+    p_user.spell_bar.H=0;
+    p_user.spell_bar.S=0;
+    p_user.spell_bar.G=0;
+    p_user.weapon_bar.mace=1;
+    p_user.weapon_bar.dagger=0;
+    p_user.weapon_bar.arrow=0;
+    p_user.weapon_bar.magic_wand=0;
+    p_user.weapon_bar.sword=0;
+    p_user.kills1=0;
+    p_user.kills2=0;
+    p_user.hunger=100;
+    p_user.current_weapon='m';
+    show_count = 0;
     if(l_user.level_num==1){
+        create_map1();
         start_new_game();
     }
     else if(l_user.level_num==2){
+        create_map2();
         start_level2();
     }
     else if(l_user.level_num==3){
+        create_map3();
         start_level3();
     }
     else if(l_user.level_num==4){
+        create_map4();
         start_level4();
     }
 }
@@ -1490,7 +1523,7 @@ int create_map1() {
 
     map1[5][23] = '+';
     map1[7][5] = 'A';
-    map1[5][15] = 'o';
+    map1[5][15] = 'J';
     map1[8][9] = '<';
 
     //  room ۲
@@ -1516,7 +1549,7 @@ int create_map1() {
         }
         map1[x][y]='%';
     }
-    for(int i = 0 ; i < 3;i++){
+    for(int i = 0 ; i < 1;i++){
         int x = rand() % 12 + 8;
         int y = rand() % 14 + 51;
         map1[x][y]='3';
@@ -1716,11 +1749,6 @@ int create_map1() {
             map1[x][y]='8';
         }
     }
-    for(int i = 0 ; i < 2;i++){
-        int x = rand() % 8 + 21;
-        int y = rand() % 8 + 151;
-        map1[x][y]='3';
-    }
     map1[28][158] = '&';
     map1[20][152] = '+';
     map1[25][150] = '@';
@@ -1855,11 +1883,6 @@ int create_map1() {
             map1[x][y]='8';
         }
     }
-    for(int i = 0 ; i < 2 ; i++){
-        int x = rand() % 8 + 29;
-        int y = rand() % 9 + 11;
-        map1[x][y]='3';
-    }
     map1[30][20] = '+';
     map1[30][12] = 'o';
     map1[36][17] = 'o';
@@ -1880,12 +1903,18 @@ int create_map1() {
             map1[x][y]='/';
         }
     }
+    for(int i = 0 ; i < 1 ; i++){
+        int x = rand() % 8 + 29;
+        int y = rand() % 9 + 11;
+        map1[x][y]='3';
+    }
     for(int i=4 ; i<5 ;i++){
         x2 = rand() % 8 + 29;
         y2 = rand() % 9 + 11;
         enemies_map1[i]=create_random_enemy(x2,y2);
         map1[x2][y2]=enemies_map1[i].face;
     }
+
     draw_path(24, 5, 59, 6,map1);
     draw_path(66,18, 100, 9,map1);
     draw_path(112, 14, 153, 19,map1);
@@ -2361,6 +2390,11 @@ int create_map2() {
         }
         map2[x][y]='3';
     }
+    for (int i = 0 ; i < 1 ;i++){
+        int x = rand() % 3 + 29;
+        int y = rand() % 14 + 12;
+        map2[x][y]='<';
+    }
     draw_path(19, 7, 35, 12,map2);
     draw_path(49, 9, 120, 7,map2);
     draw_path(127, 13, 168, 29,map2);
@@ -2454,6 +2488,9 @@ int create_map3() {
             map3[x][y]='*';
         }
     }
+    x2 = rand() % 8 + 7;
+    y2 = rand() % 5 + 36;
+    map3[x2][y2]='<';
     //  room ۲
     for (int i = 12; i < 17; i++) {
         map3[i][70] = '|';
@@ -2946,11 +2983,11 @@ int create_map4() {
     }
     int x = rand() % 7 + 7;
     int y = rand() % 7 + 11;
-    map4[x][y]='A';
     for(int i=0 ; i<1 ;i++){
         enemies_map4[i]=create_random_enemy(x,y);
         map4[x][y]=enemies_map4[i].face;
     }
+    map4[10][15]='A';
     //  room ۲
     for (int i = 5; i < 14; i++) {
         map4[i][35] = '|';
@@ -3577,7 +3614,7 @@ int handle_input(Player *player) {
                     p_user.health-=10;
                 }
                 else{
-                    p_user.hunger-=3;
+                    p_user.hunger-=2;
                 }
             }
             if(p_user.difficulty==2){
@@ -3586,7 +3623,7 @@ int handle_input(Player *player) {
                     p_user.health-=20;
                 }
                 else{
-                    p_user.hunger-=5;
+                    p_user.hunger-=3;
                 }
             }
             
@@ -3615,7 +3652,7 @@ int handle_input(Player *player) {
             break;
         case 'q':
         if(is_logged_in==1){
-            save_info2();
+            save_info();
             save_map(map1);
             main_menu();
         }
@@ -3743,7 +3780,7 @@ int handle_input(Player *player) {
                     p_user.health-=10;
                 }
                 else{
-                    p_user.hunger-=3;
+                    p_user.hunger-=2;
                 }
             }
             if(p_user.difficulty==2){
@@ -3752,7 +3789,7 @@ int handle_input(Player *player) {
                     p_user.health-=20;
                 }
                 else{
-                    p_user.hunger-=5;
+                    p_user.hunger-=3;
                 }
             }
             
@@ -3781,6 +3818,7 @@ int handle_input(Player *player) {
             break;
             case 'q':
             if(is_logged_in==1){
+                save_info();
                 save_map(map2);
                 main_menu();
             }
@@ -3915,7 +3953,7 @@ int handle_input(Player *player) {
                     p_user.health-=10;
                 }
                 else{
-                    p_user.hunger-=3;
+                    p_user.hunger-=2;
                 }
             }
             if(p_user.difficulty==2){
@@ -3924,7 +3962,7 @@ int handle_input(Player *player) {
                     p_user.health-=20;
                 }
                 else{
-                    p_user.hunger-=5;
+                    p_user.hunger-=3;
                 }
             }
             
@@ -3953,6 +3991,7 @@ int handle_input(Player *player) {
             break;
         case 'q':
             if(is_logged_in==1){
+                save_info();
                 save_map(map3);
                 main_menu();
             }
@@ -4087,7 +4126,7 @@ int handle_input(Player *player) {
                     p_user.health-=10;
                 }
                 else{
-                    p_user.hunger-=3;
+                    p_user.hunger-=2;
                 }
             }
             if(p_user.difficulty==2){
@@ -4096,7 +4135,7 @@ int handle_input(Player *player) {
                     p_user.health-=20;
                 }
                 else{
-                    p_user.hunger-=5;
+                    p_user.hunger-=3;
                 }
             }
             
@@ -4126,7 +4165,8 @@ int handle_input(Player *player) {
             break;
         case 'q':
             if(is_logged_in==1){
-                save_map(map3);
+                save_info();
+                save_map(map4);
                 main_menu();
             }
             else{
@@ -4275,7 +4315,7 @@ void draw_visible_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_
                     mvaddch(i, j,map[i][j]);
                     attroff(COLOR_PAIR(9));
                 }
-                else if(map[i][j] == '/'||map[i][j] == 'L'||map[i][j] == 'J'||map[i][j] == '*'){
+                else if(map[i][j] == '/'||map[i][j] == 'L'||map[i][j] == 'J'||map[i][j] == '*'||map[i][j]=='A'){
                     attron(COLOR_PAIR(10));
                     mvaddch(i, j,map[i][j]);
                     attroff(COLOR_PAIR(10));
@@ -4298,6 +4338,12 @@ void draw_visible_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_
                     mvaddch(i,j,map[i][j]);
                     attroff(COLOR_PAIR(3));
                 }
+                else if(map[i][j]=='<'){
+                    attron(COLOR_PAIR(5));
+                    mvaddch(i,j,map[i][j]);
+                    attroff(COLOR_PAIR(5));
+                }
+                
                 else{
                     mvaddch(i, j,map[i][j]);
                 }
@@ -5701,11 +5747,11 @@ void create_battle_room(){
         enemies[i] = create_random_enemy(y, x);
         battle_room[y][x]=enemies[i].face;
     }
-    for (int i = 0; i < 12; i++) {
-        int y = rand() % 29 + 6;  
-        int x = rand() % 83 + 46;
-        battle_room[y][x]='3';
-    }
+    // for (int i = 0; i < 12; i++) {
+    //     int y = rand() % 29 + 6;  
+    //     int x = rand() % 83 + 46;
+    //     battle_room[y][x]='^';
+    // }
 }
 Enemy create_random_enemy(int y, int x) {
     Enemy enemy;
@@ -5833,7 +5879,7 @@ int move_player(Player *player) {
                         p_user.health-=10;
                     }
                     else{
-                        p_user.hunger-=3;
+                        p_user.hunger-=2;
                     }
                 }
                 if(p_user.difficulty==2){
@@ -5842,7 +5888,7 @@ int move_player(Player *player) {
                         p_user.health-=20;
                     }
                     else{
-                        p_user.hunger-=5;
+                        p_user.hunger-=3;
                     }
                 }
             }
@@ -5888,7 +5934,7 @@ int move_player(Player *player) {
                     enemy_checker(player, &enemies[i]);
                 }
             }
-
+            wandon=0;
             
             if (p_user.health <= 0) {
                 final_result(0);
@@ -5940,7 +5986,7 @@ int move_player(Player *player) {
                         p_user.health-=10;
                     }
                     else{
-                        p_user.hunger-=3;
+                        p_user.hunger-=2;
                     }
                 }
                 if(p_user.difficulty==2){
@@ -5949,7 +5995,7 @@ int move_player(Player *player) {
                         p_user.health-=20;
                     }
                     else{
-                        p_user.hunger-=5;
+                        p_user.hunger-=3;
                     }
                 }
             }
@@ -5983,6 +6029,7 @@ int move_player(Player *player) {
                 damage_enemy2(p_user.current_weapon,player);                
             break;
             }
+            wandon=0;
             for (int i = 0; i < 3; i++) {
                 if (enemies_war[i].exe==1) {
                     enemy_checker(player, &enemies_war[i]);
@@ -6030,9 +6077,9 @@ int enemy_checker(Player *player, Enemy *enemy) {
                         break;
                 }
                 attron(COLOR_PAIR(2));
-                mvprintw(38,80,"DAMAGE!!!");
+                mvprintw(38,85,"DAMAGE!!!");
                 getch();
-                mvprintw(38,80,"         ");
+                mvprintw(38,85,"         ");
                 attroff(COLOR_PAIR(2));
             } 
             else if(enemy->exe==1&&wandon==0){
@@ -6078,9 +6125,9 @@ int enemy_checker(Player *player, Enemy *enemy) {
                         break;
                 }
                 attron(COLOR_PAIR(2));
-                mvprintw(38,80,"DAMAGE!!!");
+                mvprintw(38,85,"DAMAGE!!!");
                 getch();
-                mvprintw(38,80,"         ");
+                mvprintw(38,85,"         ");
                 attroff(COLOR_PAIR(2));
             } 
             else if(enemy->exe==1&&wandon==0){
@@ -6106,7 +6153,7 @@ int enemy_checker(Player *player, Enemy *enemy) {
 }
 int is_valid_move2(int x, int y) {
     char ch = mvinch(y, x) & A_CHARTEXT;
-    return ch == '.' || ch == '#' || ch == '+'||ch == '<'||ch=='3';
+    return ch == '.' || ch == '#' || ch == '+'||ch == '<'||ch=='3'||ch=='^';
 }
 void refresh_map2(Player *player) {
     draw_player(player);
@@ -6193,11 +6240,10 @@ void draw_battle_room(){
                 mvaddch(i,j,battle_room[i][j]);
                 attroff(COLOR_PAIR(2));
             }
-            else if(battle_room[i][j]=='3'){
-                attron(COLOR_PAIR(1));
-                mvaddch(i,j,battle_room[i][j]);
-                attroff(COLOR_PAIR(1));
-            }
+            // else if(battle_room[i][j]=='3'){
+            //     
+            //     mvaddch(i,j,'.');
+            // }
             else{
                 mvaddch(i,j,battle_room[i][j]);
             }
@@ -6233,12 +6279,14 @@ int damage_enemy2(char weapon,Player *player){
     attron(COLOR_PAIR(10));
     switch(weapon){
         case 'm':
+        wandon=0;
         damage=5;
         damage_distance=1;
         break;
         case 'd':
         if(p_user.weapon_bar.dagger<=0){
             mvprintw(1,2,"NOT ENOUGH DAGGER!!!");
+            wandon=0;
             getch();
             mvprintw(1,2,"                    ");
             return 1;
@@ -6264,6 +6312,7 @@ int damage_enemy2(char weapon,Player *player){
         case 'a':
         if(p_user.weapon_bar.arrow<=0){
             mvprintw(1,2,"NOT ENOUGH ARROW!!!");
+            wandon=0;
             getch();
             mvprintw(1,2,"                    ");
             return 1;
@@ -6276,6 +6325,7 @@ int damage_enemy2(char weapon,Player *player){
         case 's':
         if(p_user.weapon_bar.sword==0){
             mvprintw(1,2,"NOT ENOUGH SWORD!!!");
+            wandon=0;
             getch();
             mvprintw(1,2,"                    ");
             return 1;
@@ -6481,6 +6531,7 @@ void final_result(int x){
         attron(COLOR_PAIR(8));
         mvprintw(start_y + height - 2, start_x + (width - 20) / 2 -5, "Press any key to exit...");
         attroff(COLOR_PAIR(8));
+        save_info();
     }
     refresh();
     napms(10000);
@@ -6554,9 +6605,9 @@ int save_info(){
     char current_username[50];
     strcpy(current_username,l_user.username);
     User *user = find_user(users, num_users, current_username);
-    user->gold += p_user.gold;
-    user->score += p_user.score;
-    user->kills1 += p_user.kills1+p_user.kills2;
+    user->gold = l_user.gold;
+    user->score = l_user.score;
+    user->kills1 = l_user.kills1;
     user->game=l_user.game;
     if (!write_users(filename, users, num_users)) {
         return 1;
@@ -6625,7 +6676,7 @@ User* find_user(User users[], int num_users, const char *username) {
 int telesm(Player *player){
     attron(COLOR_PAIR(6));
     if(p_user.level_num==1){
-        if(get_room_id(player->x,player->y)==2){
+        if(get_room_id(player->x,player->y)==5){
             mvprintw(3,74,"YOU ARE IN ENCHANTED ROOM :o");
             strcpy(current_music,"peritune-spook4(chosic.com).mp3");
             p_user.health-=10;
@@ -6888,11 +6939,13 @@ int save_info2(){
     char current_username[50];
     strcpy(current_username,l_user.username);
     User *user = find_user(users, num_users, current_username);
-    user->gold = l_user.gold;
-    user->score = l_user.score;
-    user->kills1 = l_user.kills1;
+    user->gold += p_user.gold;
+    user->score += p_user.score;
+    user->color=p_user.color;
+    user->difficulty=p_user.difficulty;
+    user->kills1=p_user.kills1;
     user->game=l_user.game;
-    p_user.level_num=l_user.level_num;
+    l_user.level_num=p_user.level_num;
     user->level_num=l_user.level_num;
     if (!write_users(filename, users, num_users)) {
         return 1;
@@ -7144,4 +7197,49 @@ void draw_war_house(){
             }
         }
     }
+}
+void guide(){
+    clear();
+    int starty = 1, startx = 1;
+    int height = LINES -3, width = COLS -3;
+    attron(COLOR_PAIR(9));
+    mvprintw(starty + 1, startx + 2, "Kinds of foods :");
+    mvprintw(starty + 2, startx + 2, "Normal  food(%%) : +10 power | Speedy  food(V) : +10 power and fast move on! | Supreme food(X) : +50 power");
+    attroff(COLOR_PAIR(9));
+    attron(COLOR_PAIR(6));
+    mvprintw(starty + 4, startx + 2, "Kinds of spells :");
+    mvprintw(starty + 5, startx + 2, "Health spell(H) : x2 foods' power | Speed spell(R) : fast move on! | Power spell(8) x2 weapons' damage");
+    attroff(COLOR_PAIR(6));
+    attron(COLOR_PAIR(8));
+    mvprintw(starty + 7, startx + 2, "Kinds of golds :");
+    mvprintw(starty + 8, startx + 2, "Golden gold(T) +5 gold number | Black gold(Z) +50 gold number");
+    attroff(COLOR_PAIR(8));
+    attron(COLOR_PAIR(10));
+    mvprintw(starty + 10, startx + 2, "Kinds of weapons :");
+    mvprintw(starty + 11, startx + 2, "Mace : damage{5},range{short} | Sword : damage{10},range{short} | Magic wand : damage{15},range{10} | Arrows : damage{5},range{5} | Daggers : damage{12},range{5}");
+    attroff(COLOR_PAIR(10));
+    attron(COLOR_PAIR(7));
+    mvprintw(starty + 13, startx + 2, "Map details :");
+    mvprintw(starty + 14, startx + 2, "stair(<) | door(+) | locked door(@) | pillar(o) | corridor(#) | Golden door(A)");
+    attroff(COLOR_PAIR(7));
+    attron(COLOR_PAIR(2));
+    mvprintw(starty + 16, startx + 2, "Enemies :");
+    mvprintw(starty + 17, startx + 2, "Snake(S) : damage{15} | Deamon(D) damage{5} | Fire Breathing Monster damage{10} | Giant damage{15} | Undeed damage{30}");
+    attroff(COLOR_PAIR(2));
+    mvaddch(starty, startx, '+');
+    mvaddch(starty, startx + width, '+');
+    mvaddch(starty + height, startx, '+');
+    mvaddch(starty + height, startx + width, '+');
+
+    for (int i = starty + 1; i < starty + height; i++) {
+        mvaddch(i, startx, '|');
+        mvaddch(i, startx + width, '|');
+    }
+
+    for (int i = startx + 1; i < startx + width; i++) {
+        mvaddch(starty, i, '-');
+        mvaddch(starty + height, i, '-');
+    }
+    refresh();
+    getch();
 }
