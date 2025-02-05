@@ -6161,7 +6161,9 @@ void refresh_map2(Player *player) {
     mvprintw(LINES-2,2,"                              ");
     mvprintw(LINES-2,20,"                              ");
     mvprintw(LINES-3,62,"                                         ");
-    
+    attron(COLOR_PAIR(10));
+    mvprintw(0,77,"ZYRUS is watching you :)");
+    attroff(COLOR_PAIR(10));
     draw_bar(LINES-2, 62, 20, p_user.health, 10000, "Health");
     draw_bar(LINES-3, 62, 20, p_user.hunger, 100, "Power");
     attron(COLOR_PAIR(1));
@@ -6171,7 +6173,7 @@ void refresh_map2(Player *player) {
     attroff(COLOR_PAIR(1));
     mvprintw(LINES-6,2,"                              ");
     //attron(COLOR_PAIR(7));
-    
+    pace_counter2=0;
     //attroff(COLOR_PAIR(7));
     attron(COLOR_PAIR(10));
     switch(p_user.current_weapon){
@@ -6480,65 +6482,71 @@ void final_result(int x){
     int width = 50;
     int start_y = (LINES - height) / 2;
     int start_x = (COLS - width) / 2;
-
-    attron(COLOR_PAIR(7));
-    for (int y = start_y; y < start_y + height; y++) {
-        for (int x = start_x; x < start_x + width; x++) {
-            if (y == start_y || y == start_y + height - 1 || x == start_x || x == start_x + width - 1) {
-                mvaddch(y, x, ACS_CKBOARD);   
-            }
-        }
-    }
-    attroff(COLOR_PAIR(7));
-    if(x==1){
-        p_user.score+=200;
-        attron(COLOR_PAIR(3));
-        mvprintw(start_y + 2, start_x + (width - 10) / 2, " YOU WON! ");
-        attroff(COLOR_PAIR(3));
-        attron(COLOR_PAIR(1));
-        mvprintw(start_y + 4, start_x + 5, "Gold: %d", p_user.gold);
-        attroff(COLOR_PAIR(1));
-        attron(COLOR_PAIR(10));
-        mvprintw(start_y + 5, start_x + 5, "Score: %d", p_user.score);
-        attroff(COLOR_PAIR(10));
-        attron(COLOR_PAIR(2));
-        mvprintw(start_y + 6, start_x + 5, "Kills: %d", p_user.kills1+p_user.kills2);
-        attroff(COLOR_PAIR(2));
-        attron(COLOR_PAIR(7));
-        mvprintw(start_y + height - 3, start_x + 5, "----------------------------------------");
-        attroff(COLOR_PAIR(7));
-        attron(COLOR_PAIR(8));
-        mvprintw(start_y + height - 2, start_x + (width - 20) / 2-5, "Press any key to exit...");
-        attroff(COLOR_PAIR(8));
-        save_info();
+    if(is_logged_in==0){
+        show_table();
+        main_menu();
     }
     else{
-        attron(COLOR_PAIR(2));
-        mvprintw(start_y + 2, start_x + (width - 10) / 2, " YOU LOST! ");
-        attroff(COLOR_PAIR(2));
-        attron(COLOR_PAIR(1));
-        mvprintw(start_y + 4, start_x + 5, "Gold: %d", p_user.gold);
-        attroff(COLOR_PAIR(1));
-        attron(COLOR_PAIR(10));
-        mvprintw(start_y + 5, start_x + 5, "Score: %d", p_user.score);
-        attroff(COLOR_PAIR(10));
-        attron(COLOR_PAIR(2));
-        mvprintw(start_y + 6, start_x + 5, "Kills: %d", p_user.kills1+p_user.kills2);
-        attroff(COLOR_PAIR(2));
         attron(COLOR_PAIR(7));
-        mvprintw(start_y + height - 3, start_x + 5, "----------------------------------------");
+        for (int y = start_y; y < start_y + height; y++) {
+            for (int x = start_x; x < start_x + width; x++) {
+                if (y == start_y || y == start_y + height - 1 || x == start_x || x == start_x + width - 1) {
+                    mvaddch(y, x, ACS_CKBOARD);   
+                }
+            }
+        }
         attroff(COLOR_PAIR(7));
-        attron(COLOR_PAIR(8));
-        mvprintw(start_y + height - 2, start_x + (width - 20) / 2 -5, "Press any key to exit...");
-        attroff(COLOR_PAIR(8));
-        save_info();
+        if(x==1){
+            p_user.score+=200;
+            attron(COLOR_PAIR(3));
+            mvprintw(start_y + 2, start_x + (width - 10) / 2, " YOU WON! ");
+            attroff(COLOR_PAIR(3));
+            attron(COLOR_PAIR(1));
+            mvprintw(start_y + 4, start_x + 5, "Gold: %d", p_user.gold);
+            attroff(COLOR_PAIR(1));
+            attron(COLOR_PAIR(10));
+            mvprintw(start_y + 5, start_x + 5, "Score: %d", p_user.score);
+            attroff(COLOR_PAIR(10));
+            attron(COLOR_PAIR(2));
+            mvprintw(start_y + 6, start_x + 5, "Kills: %d", p_user.kills1+p_user.kills2);
+            attroff(COLOR_PAIR(2));
+            attron(COLOR_PAIR(7));
+            mvprintw(start_y + height - 3, start_x + 5, "----------------------------------------");
+            attroff(COLOR_PAIR(7));
+            attron(COLOR_PAIR(8));
+            mvprintw(start_y + height - 2, start_x + (width - 20) / 2-5, "Press any key to exit...");
+            attroff(COLOR_PAIR(8));
+            save_info();
+        }
+        else{
+            attron(COLOR_PAIR(2));
+            mvprintw(start_y + 2, start_x + (width - 10) / 2, " YOU LOST! ");
+            attroff(COLOR_PAIR(2));
+            attron(COLOR_PAIR(1));
+            mvprintw(start_y + 4, start_x + 5, "Gold: %d", p_user.gold);
+            attroff(COLOR_PAIR(1));
+            attron(COLOR_PAIR(10));
+            mvprintw(start_y + 5, start_x + 5, "Score: %d", p_user.score);
+            attroff(COLOR_PAIR(10));
+            attron(COLOR_PAIR(2));
+            mvprintw(start_y + 6, start_x + 5, "Kills: %d", p_user.kills1+p_user.kills2);
+            attroff(COLOR_PAIR(2));
+            attron(COLOR_PAIR(7));
+            mvprintw(start_y + height - 3, start_x + 5, "----------------------------------------");
+            attroff(COLOR_PAIR(7));
+            attron(COLOR_PAIR(8));
+            mvprintw(start_y + height - 2, start_x + (width - 20) / 2 -5, "Press any key to exit...");
+            attroff(COLOR_PAIR(8));
+            save_info();
+        }
+        refresh();
+        napms(10000);
+        
+        getch();
+        show_table();
+        main_menu();
     }
-    refresh();
-    napms(10000);
     
-    getch();
-    show_table();
-    main_menu();
 }
 void draw_robot_art(int start_y, int start_x) {
     attron(COLOR_PAIR(7));
@@ -7004,30 +7012,30 @@ int robot_checker(){
     if (number == result) {
         noecho();
         curs_set(0);
-        mvprintw(19-5, 51, "                         |\\   \\        /        /|");
-        mvprintw(20-5, 51, "                        /  \\  |\\__  __/|       /  \\");
-        mvprintw(21-5, 51, "                       / /\\ \\ \\ _ \\/ _ /      /    \\");
-        mvprintw(22-5, 51, "                      / / /\\ \\ {*}\\/{*}      /  / \\ \\");
-        mvprintw(23-5, 51, "                      | | | \\ \\( (00) )     /  // |\\ \\");
-        mvprintw(24-5, 51, "                      | | | |\\ \\(V\"\"V)\\    /  / | || \\|");
-        mvprintw(25-5, 51, "                      | | | | \\ |^--^| \\  /  / || || ||");
-        mvprintw(26-5, 51, "                     / / /  | |( WWWW__ \\/  /| || || ||");
-        mvprintw(27-5, 51, "                     | | | | | |  \\______\\  / / || || ||");
-        mvprintw(28-5, 51, "                     | | | / | | )|______\\ ) | / | || ||");
-        mvprintw(29-5, 51, "                    / / /  / /  /______/   /| \\ \\ || ||");
-        mvprintw(30-5, 51, "                   / / /  / /  /\\_____/  |/ /__\\ \\ \\ \\ \\");
-        mvprintw(31-5, 51, "                   | | | / /  /\\______/    \\   \\__| \\ \\ \\");
-        mvprintw(32-5, 51, "                   | | | | | |\\______ __    \\_    \\__|_| \\");
-        mvprintw(33-5, 51, "                   | | ,___ /\\______ _  _     \\_       \\  |");
-        mvprintw(34-5, 51, "                   | |/    /\\_____  /    \\      \\__     \\ |    /\\");
-        mvprintw(35-5, 51, "                   |/ |   |\\______ |      |        \\___  \\ |__/  \\");
-        mvprintw(36-5, 51, "                   v  |   |\\______ |      |            \\___/     |");
-        mvprintw(37-5, 51, "                      |   |\\______ |      |                    __/");
-        mvprintw(38-5, 51, "                       \\   \\________\\_    _\\               ____/");
-        mvprintw(39-5, 51, "                     __/   /\\_____ __/   /   )\\_,      _____/");
-        mvprintw(40-5, 51, "                    /  ___/  \\uuuu/  ___/___)    \\______/");
-        mvprintw(41-5, 51, "                    VVV  V        VVV  V");
-        mvprintw(42-5,70,"| THE GREAT ZYRUS INVITES YOU TO THE GAME PRESS A KEY TO CONTINUE |");
+        mvprintw(19-8, 51, "                         |\\   \\        /        /|");
+        mvprintw(20-8, 51, "                        /  \\  |\\__  __/|       /  \\");
+        mvprintw(21-8, 51, "                       / /\\ \\ \\ _ \\/ _ /      /    \\");
+        mvprintw(22-8, 51, "                      / / /\\ \\ {*}\\/{*}      /  / \\ \\");
+        mvprintw(23-8, 51, "                      | | | \\ \\( (00) )     /  // |\\ \\");
+        mvprintw(24-8, 51, "                      | | | |\\ \\(V\"\"V)\\    /  / | || \\|");
+        mvprintw(25-8, 51, "                      | | | | \\ |^--^| \\  /  / || || ||");
+        mvprintw(26-8, 51, "                     / / /  | |( WWWW__ \\/  /| || || ||");
+        mvprintw(27-8, 51, "                     | | | | | |  \\______\\  / / || || ||");
+        mvprintw(28-8, 51, "                     | | | / | | )|______\\ ) | / | || ||");
+        mvprintw(29-8, 51, "                    / / /  / /  /______/   /| \\ \\ || ||");
+        mvprintw(30-8, 51, "                   / / /  / /  /\\_____/  |/ /__\\ \\ \\ \\ \\");
+        mvprintw(31-8, 51, "                   | | | / /  /\\______/    \\   \\__| \\ \\ \\");
+        mvprintw(32-8, 51, "                   | | | | | |\\______ __    \\_    \\__|_| \\");
+        mvprintw(33-8, 51, "                   | | ,___ /\\______ _  _     \\_       \\  |");
+        mvprintw(34-8, 51, "                   | |/    /\\_____  /    \\      \\__     \\ |    /\\");
+        mvprintw(35-8, 51, "                   |/ |   |\\______ |      |        \\___  \\ |__/  \\");
+        mvprintw(36-8, 51, "                   v  |   |\\______ |      |            \\___/     |");
+        mvprintw(37-8, 51, "                      |   |\\______ |      |                    __/");
+        mvprintw(38-8, 51, "                       \\   \\________\\_    _\\               ____/");
+        mvprintw(39-8, 51, "                     __/   /\\_____ __/   /   )\\_,      _____/");
+        mvprintw(40-8, 51, "                    /  ___/  \\uuuu/  ___/___)    \\______/");
+        mvprintw(41-8, 51, "                    VVV  V        VVV  V");
+        mvprintw(43-8,68,"| THE GREAT ZYRUS INVITES YOU TO THE GAME PRESS A KEY TO CONTINUE |");
         getch();
         attroff(COLOR_PAIR(10));
         return 1;   
@@ -7036,30 +7044,30 @@ int robot_checker(){
     {
         noecho();
         curs_set(0);
-        mvprintw(19-5, 51, "                         |\\   \\        /        /|");
-        mvprintw(20-5, 51, "                        /  \\  |\\__  __/|       /  \\");
-        mvprintw(21-5, 51, "                       / /\\ \\ \\ _ \\/ _ /      /    \\");
-        mvprintw(22-5, 51, "                      / / /\\ \\ {*}\\/{*}      /  / \\ \\");
-        mvprintw(23-5, 51, "                      | | | \\ \\( (00) )     /  // |\\ \\");
-        mvprintw(24-5, 51, "                      | | | |\\ \\(V\"\"V)\\    /  / | || \\|");
-        mvprintw(25-5, 51, "                      | | | | \\ |^--^| \\  /  / || || ||");
-        mvprintw(26-5, 51, "                     / / /  | |( WWWW__ \\/  /| || || ||");
-        mvprintw(27-5, 51, "                     | | | | | |  \\______\\  / / || || ||");
-        mvprintw(28-5, 51, "                     | | | / | | )|______\\ ) | / | || ||");
-        mvprintw(29-5, 51, "                    / / /  / /  /______/   /| \\ \\ || ||");
-        mvprintw(30-5, 51, "                   / / /  / /  /\\_____/  |/ /__\\ \\ \\ \\ \\");
-        mvprintw(31-5, 51, "                   | | | / /  /\\______/    \\   \\__| \\ \\ \\");
-        mvprintw(32-5, 51, "                   | | | | | |\\______ __    \\_    \\__|_| \\");
-        mvprintw(33-5, 51, "                   | | ,___ /\\______ _  _     \\_       \\  |");
-        mvprintw(34-5, 51, "                   | |/    /\\_____  /    \\      \\__     \\ |    /\\");
-        mvprintw(35-5, 51, "                   |/ |   |\\______ |      |        \\___  \\ |__/  \\");
-        mvprintw(36-5, 51, "                   v  |   |\\______ |      |            \\___/     |");
-        mvprintw(37-5, 51, "                      |   |\\______ |      |                    __/");
-        mvprintw(38-5, 51, "                       \\   \\________\\_    _\\               ____/");
-        mvprintw(39-5, 51, "                     __/   /\\_____ __/   /   )\\_,      _____/");
-        mvprintw(40-5, 51, "                    /  ___/  \\uuuu/  ___/___)    \\______/");
-        mvprintw(41-5, 51, "                    VVV  V        VVV  V");
-        mvprintw(42-5,70,"| YOU MADE THE GREAT ZYRUS ANGRY TRY AGAIN !!!! |");
+        mvprintw(19-8, 51, "                         |\\   \\        /        /|");
+        mvprintw(20-8, 51, "                        /  \\  |\\__  __/|       /  \\");
+        mvprintw(21-8, 51, "                       / /\\ \\ \\ _ \\/ _ /      /    \\");
+        mvprintw(22-8, 51, "                      / / /\\ \\ {*}\\/{*}      /  / \\ \\");
+        mvprintw(23-8, 51, "                      | | | \\ \\( (00) )     /  // |\\ \\");
+        mvprintw(24-8, 51, "                      | | | |\\ \\(V\"\"V)\\    /  / | || \\|");
+        mvprintw(25-8, 51, "                      | | | | \\ |^--^| \\  /  / || || ||");
+        mvprintw(26-8, 51, "                     / / /  | |( WWWW__ \\/  /| || || ||");
+        mvprintw(27-8, 51, "                     | | | | | |  \\______\\  / / || || ||");
+        mvprintw(28-8, 51, "                     | | | / | | )|______\\ ) | / | || ||");
+        mvprintw(29-8, 51, "                    / / /  / /  /______/   /| \\ \\ || ||");
+        mvprintw(30-8, 51, "                   / / /  / /  /\\_____/  |/ /__\\ \\ \\ \\ \\");
+        mvprintw(31-8, 51, "                   | | | / /  /\\______/    \\   \\__| \\ \\ \\");
+        mvprintw(32-8, 51, "                   | | | | | |\\______ __    \\_    \\__|_| \\");
+        mvprintw(33-8, 51, "                   | | ,___ /\\______ _  _     \\_       \\  |");
+        mvprintw(34-8, 51, "                   | |/    /\\_____  /    \\      \\__     \\ |    /\\");
+        mvprintw(35-8, 51, "                   |/ |   |\\______ |      |        \\___  \\ |__/  \\");
+        mvprintw(36-8, 51, "                   v  |   |\\______ |      |            \\___/     |");
+        mvprintw(37-8, 51, "                      |   |\\______ |      |                    __/");
+        mvprintw(38-8, 51, "                       \\   \\________\\_    _\\               ____/");
+        mvprintw(39-8, 51, "                     __/   /\\_____ __/   /   )\\_,      _____/");
+        mvprintw(40-8, 51, "                    /  ___/  \\uuuu/  ___/___)    \\______/");
+        mvprintw(41-8, 51, "                    VVV  V        VVV  V");
+        mvprintw(43-8,68,"| YOU MADE THE GREAT ZYRUS ANGRY TRY AGAIN !!!! |");
         getch();
         attroff(COLOR_PAIR(10));
         return 0;   
@@ -7112,6 +7120,9 @@ void start_war(){
 void refresh3(Player *player){
     draw_player(player);
     draw_war_house();
+    attron(COLOR_PAIR(10));
+    mvprintw(0,77,"ZYRUS is watching you :)");
+    attroff(COLOR_PAIR(10));
     mvprintw(LINES-2,2,"                              ");
     mvprintw(LINES-2,20,"                              ");
     mvprintw(LINES-3,62,"                                         ");
@@ -7124,7 +7135,7 @@ void refresh3(Player *player){
     attroff(COLOR_PAIR(1));
     mvprintw(LINES-6,2,"                              ");
     //attron(COLOR_PAIR(7));
-    
+    pace_counter2=0;
     //attroff(COLOR_PAIR(7));
     attron(COLOR_PAIR(10));
     switch(p_user.current_weapon){
