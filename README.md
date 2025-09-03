@@ -1,5 +1,4 @@
-Z-Run
-A Rogue-like Adventure in C
+Z-Run: A Rogue-like Adventure in C
 
 Project Overview
 
@@ -57,11 +56,11 @@ sudo apt-get install build-essential libncursesw5-dev libsdl2-dev libsdl2-mixer-
 Compilation:
 Use GCC to compile the source code. The following command links all required libraries:
 
-gcc v6.c -o Z-Run -lncursesw -lSDL2 -lSDL2_mixer -lm
+"gcc v6.c -o Z-Run -lncursesw -lSDL2 -lSDL2_mixer -lm"
 
 This will create an executable file named Z-Run.
 
 Running the Game
 To start the game, simply run the executable from your terminal:
 
-./Z-Run
+"./Z-Run"
