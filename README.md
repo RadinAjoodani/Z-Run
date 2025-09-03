@@ -41,14 +41,17 @@ q: Quit the game and save progress (if logged in).
 Getting Started
 To compile and run this project on a Linux-based system, follow these steps.
 
-first you need to install ncurses libraries:
+First you need to install ncurses libraries:
 sudo apt-get install build-essential libncursesw5-dev libsdl2-dev libsdl2-mixer-dev
 
 Compilation:
 Use GCC to compile the source code. The following command links all required libraries:
+
 gcc v6.c -o Z-Run -lncursesw -lSDL2 -lSDL2_mixer -lm
+
 This will create an executable file named Z-Run.
 
 Running the Game
 To start the game, simply run the executable from your terminal:
+
 ./Z-Run
