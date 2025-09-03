@@ -9,49 +9,50 @@ This game includes a variety of features designed to create a classic rogue-like
 
 Main Menu & User System:
 
-Sign up with username, password, and email validation.
-Secure login system and option to play as a guest.
-Password recovery and random password generation options.
+- Sign up with username, password, and email validation.
+- Secure login system and option to play as a guest.
+- Password recovery and random password generation options.
 
 Gameplay & Mechanics:
 
-Navigate through 4 floors of a treacherous dungeon.
-Procedurally generated maps with multiple rooms and corridors for a unique experience every time.
-Engage in combat with a variety of enemies, including Deamons, Giants, Snakes, and more.
-Collect gold, weapons, spells, and food to survive and increase your score.
+- Navigate through 4 floors of a treacherous dungeon.
+- Procedurally generated maps with multiple rooms and corridors for a unique experience every time.
+- Engage in combat with a variety of enemies, including Deamons, Giants, Snakes, and more.
+- Collect gold, weapons, spells, and food to survive and increase your score.
 
 Advanced Features:
 
-Enchanted and Nightmare Rooms: Special themed rooms that alter gameplay, such as limiting vision or containing powerful items.
-Interactive Objects: Locked doors, traps, and secret passages to discover.
-Audio Integration: Background music using the SDL2_mixer library to enhance the atmosphere.
+- Enchanted and Nightmare Rooms: Special themed rooms that alter gameplay, such as limiting vision or containing powerful items.
+- Interactive Objects: Locked doors, traps, and secret passages to discover.
+- Audio Integration: Background music using the SDL2_mixer library to enhance the atmosphere.
 
 Scoring & Profile:
 
-A persistent score table that ranks players.
-Player profiles to track statistics like gold, kills, and games played.
+- A persistent score table that ranks players.
+- Player profiles to track statistics like gold, kills, and games played.
 
 Controls:
 
-Movement: Use the number pad (1, 2, 3, 4, 6, 7, 8, 9) to move in 8 directions.
+- Movement: Use the number pad (1, 2, 3, 4, 6, 7, 8, 9) to move in 8 directions.
 
 Menus:
 
-e: Open the food menu.
-p: Open the spell menu.
-i: Open the inventory/weapon menu.
+- e: Open the food menu.
+- p: Open the spell menu.
+- i: Open the inventory/weapon menu.
 
 Actions:
 
-Spacebar: Attack in a chosen direction.
-m: Toggle the full map view.
-q: Quit the game and save progress (if logged in).
+- Spacebar: Attack in a chosen direction.
+- m: Toggle the full map view.
+- q: Quit the game and save progress (if logged in).
 
 Getting Started
 To compile and run this project on a Linux-based system, follow these steps.
 
 First you need to install ncurses libraries:
-sudo apt-get install build-essential libncursesw5-dev libsdl2-dev libsdl2-mixer-dev
+- sudo apt install libncurses6 libncursesw6
+- sudo apt install libncurses-dev
 
 Compilation:
 Use GCC to compile the source code. The following command links all required libraries:
